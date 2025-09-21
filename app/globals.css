@@ -24,3 +24,14 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+input,textarea {
+  outline: none;
+}
+button{
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+button:active{
+  transform: scale(0.98);
+}
