@@ -117,7 +117,7 @@ const Dashboard = () => {
               </div>
             </span>
             <p className="text-xl font-bold">
-              ฿{Number(dashboardAvg?.sellPrice).toLocaleString()}
+              ฿{Number(dashboardAvg?.sellPrice || 0).toLocaleString()}
             </p>
             <p>บาท</p>
           </div>
@@ -129,7 +129,7 @@ const Dashboard = () => {
               </div>
             </span>
             <p className="text-xl font-bold">
-              {Number(dashboardAvg?.allPending).toLocaleString()}
+              {Number(dashboardAvg?.allPending || 0).toLocaleString()}
             </p>
             <p>ออเดอร์</p>
           </div>
@@ -141,7 +141,7 @@ const Dashboard = () => {
               </div>
             </span>
             <p className="text-xl font-bold">
-              {Number(dashboardAvg?.allStock).toLocaleString()}
+              {Number(dashboardAvg?.allStock || 0).toLocaleString()}
             </p>
             <p>ชิ้น</p>
           </div>
@@ -153,7 +153,7 @@ const Dashboard = () => {
               </div>
             </span>
             <p className="text-xl font-bold">
-              {Number(dashboardAvg?.allMembers).toLocaleString()}
+              {Number(dashboardAvg?.allMembers || 0).toLocaleString()}
             </p>
             <p>คน</p>
           </div>

@@ -15,12 +15,15 @@ import {
   FaChevronDown,
   FaChevronLeft,
   FaChevronRight,
+  FaDollarSign,
   FaEdit,
+  FaExclamationCircle,
   FaImage,
   FaPlus,
   FaRegListAlt,
   FaSearch,
   FaSellcast,
+  FaSellsy,
   FaStoreAlt,
   FaTimes,
   FaTrash,
@@ -39,7 +42,7 @@ const Product = () => {
   const [search, setSearch] = useState("");
   const [take, setTake] = useState(15);
   const [searchCtg, setSearchCtg] = useState("");
-  const [sort, setSort] = useState(JSON.stringify({ createdAt: "desc" }));
+  const [sort, setSort] = useState(JSON.stringify({ pro_number: "asc" }));
   const [editProduct, setEditProduct] = useState(null);
 
   const [categoriesOption, setCategoriesOptions] = useState([]);
@@ -242,6 +245,12 @@ const Product = () => {
         setSelectCategories([]);
         setSelectImages([]);
         setPreviewImages([]);
+        if (editProduct?.pro_id) {
+          setSort(JSON.stringify({ updatedAt: "desc" }));
+        } else {
+          setSort(JSON.stringify({ createdAt: "desc" }));
+        }
+        setPage(1);
       }
     } catch (error) {
       console.error(error);
@@ -327,18 +336,18 @@ const Product = () => {
 
         <div className="mt-5 pt-5 border-t-2 border-blue-500 w-full">
           {/* statics */}
-          <div className="grid lg:grid-cols-3 grid-cols-1 gap-3.5 w-full">
+          <div className="grid lg:grid-cols-4 grid-cols-1 gap-3.5 w-full">
             <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
               <span className="w-full flex items-center justify-between">
-                <p className="text-red-600">รายการสินค้าทั้งหมด</p>
-                <div className="p-2 rounded-full border border-red-500">
-                  <FaBoxes color="red" />
+                <p className="text-yellow-600">รายการสินค้าทั้งหมด</p>
+                <div className="p-2 rounded-full border border-yellow-500">
+                  <FaBoxes color="orange" />
                 </div>
               </span>
               <p className="text-xl font-bold">
                 {loading
                   ? ""
-                  : Number(productAvg?.allList).toLocaleString() || 0}
+                  : Number(productAvg?.allList || 0).toLocaleString() || 0}
               </p>
               <p>รายการ</p>
             </div>
@@ -352,21 +361,43 @@ const Product = () => {
               <p className="text-xl font-bold">
                 {loading
                   ? ""
-                  : Number(productAvg?.allStock).toLocaleString() || 0}
+                  : Number(productAvg?.allStock || 0).toLocaleString() || 0}
               </p>
               <p>ชิ้น</p>
             </div>
             <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
               <span className="w-full flex items-center justify-between">
-                <p className="text-yellow-500">ขายแล้ว</p>
-                <div className="p-2 rounded-full border border-yellow-500">
-                  <FaSellcast color="orange" />
+                <p className="text-green-500">ขายแล้ว</p>
+                <div className="p-2 rounded-full border border-green-500">
+                  <FaDollarSign color="green" />
                 </div>
               </span>
               <p className="text-xl font-bold">
                 {loading
                   ? ""
-                  : Number(productAvg?.allSell).toLocaleString() || 0}
+                  : Number(productAvg?.allSell || 0).toLocaleString() || 0}
+              </p>
+              <p>ชิ้น</p>
+            </div>
+            <div
+              onClick={() => {
+                setSort(JSON.stringify({ pro_number: "asc" }));
+                setPage(1);
+              }}
+              className="p-5 cursor-pointer rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5"
+            >
+              <span className="w-full flex items-center justify-between">
+                <p className="text-red-500">สินค้าที่ใกล้หมด</p>
+                <div className="p-2 rounded-full border border-red-500">
+                  <FaExclamationCircle color="red" />
+                </div>
+              </span>
+              <p className="text-xl font-bold">
+                {loading
+                  ? ""
+                  : Number(
+                      productAvg?.countProductLess || 0
+                    ).toLocaleString() || 0}
               </p>
               <p>ชิ้น</p>
             </div>
@@ -539,7 +570,7 @@ const Product = () => {
               <p className="w-[28%] text-start">สินค้า</p>
               <p className="w-[25%] text-start">คำอธิบาย</p>
               <span className="w-[10%] flex items-center justify-center text-center gap-2">
-                <p>ค่าจัดส่ง</p>
+                <p>ราคา/หน่วย</p>
                 <FaCaretUp
                   className="cursor-pointer"
                   onClick={() => setSort(JSON.stringify({ freight: "asc" }))}
@@ -579,8 +610,17 @@ const Product = () => {
                 productsList?.map((p, index) => (
                   <div
                     key={uuid()}
-                    className="cursor-pointer grid grid-cols-1 text-[0.9rem] border-b border-blue-100 hover:bg-blue-50 w-full lg:flex gap-2 lg:gap-0 items-center py-3"
+                    className={`${
+                      p?.pro_number === 0 && "bg-red-100"
+                    } relative cursor-pointer grid grid-cols-1 text-[0.9rem] border-b border-blue-100 hover:bg-blue-50 w-full lg:flex gap-2 lg:gap-0 items-center py-3`}
                   >
+                    {p?.pro_number <= 5 && (
+                      <span className="absolute top-1.5 left-4 p-1 text-xs rounded-md shadow-md text-red-500 bg-red-100">
+                        {p?.pro_number === 0
+                          ? "สินค้าหมดแล้ว!"
+                          : "สินค้าใกล้หมด"}
+                      </span>
+                    )}
                     <p className="w-full lg:w-[7%] lg:text-start">
                       {index + (page - 1) * 10 + 1}
                     </p>
@@ -602,7 +642,7 @@ const Product = () => {
                           {p?.categories?.map((c) => c.name).join(",")}
                         </p>
                         <p className="w-full break-words text-sm text-gray-600">
-                          ราคา {Number(p?.pro_price).toLocaleString()}฿ / หน่วย
+                          ค่าจัดส่ง {Number(p?.freight).toLocaleString()}฿ / หน่วย
                         </p>
                         <p className="w-full break-words text-sm text-gray-600">
                           {p?.pro_color}
@@ -616,7 +656,7 @@ const Product = () => {
                       {p?.pro_details}
                     </p>
                     <p className="w-full lg:w-[10%] lg:text-center">
-                      {Number(p?.freight).toLocaleString()}฿
+                      {Number(p?.pro_price).toLocaleString()}฿
                     </p>
                     <p className="w-full lg:w-[10%] lg:text-center">
                       {Number(p?.pro_number).toLocaleString()} ชิ้น

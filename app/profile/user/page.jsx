@@ -159,41 +159,25 @@ const Profile = () => {
           {/* prefix */}
           <span className="flex items-center gap-3.5 lg:w-[90%] w-full">
             <p className="text-sm text-gray-600 w-[35%]">คำนำหน้า</p>
-            <div className="flex items-center gap-2 w-[75%]">
-              <button
-                onClick={() => {
-                  setPrefix("นาย");
-                  setGender("ชาย");
+            <span className="mt-1.5 flex items-center w-[75%] gap-2">
+              <Select
+                options={[
+                  { label: "นาย", value: 1 },
+                  { label: "นาง", value: 2 },
+                  { label: "นางสาว", value: 3 },
+                ]}
+                value={[
+                  { label: "นาย", value: 1 },
+                  { label: "นาง", value: 2 },
+                  { label: "นางสาว", value: 3 },
+                ].find((p) => p.label == prefix)}
+                onChange={(option) => {
+                  setPrefix(option.value);
                 }}
-                className={`${
-                  prefix === "นาย" && "bg-blue-500 text-white"
-                } text-sm p-1 px-3 rounded-md border border-gray-400`}
-              >
-                นาย
-              </button>
-              <button
-                onClick={() => {
-                  setPrefix("นาง");
-                  setGender("หญิง");
-                }}
-                className={`${
-                  prefix === "นาง" && "bg-blue-500 text-white"
-                } text-sm p-1 px-3 rounded-md border border-gray-400`}
-              >
-                นาง
-              </button>
-              <button
-                onClick={() => {
-                  setPrefix("นางสาว");
-                  setGender("หญิง");
-                }}
-                className={`${
-                  prefix === "นางสาว" && "bg-blue-500 text-white"
-                } text-sm p-1 px-3 rounded-md border border-gray-400`}
-              >
-                นางสาว
-              </button>
-            </div>
+                className="w-full"
+                placeholder="เลือกคำนำหน้า"
+              />
+            </span>
           </span>
           {/* fname */}
           <span className="flex items-center gap-3.5 lg:w-[90%] w-full">
@@ -250,24 +234,23 @@ const Profile = () => {
           {/* gender */}
           <span className="flex items-center gap-3.5 lg:w-[90%] w-full">
             <p className="text-sm text-gray-600 w-[35%]">เพศ</p>
-            <div className="flex items-center gap-2 w-[75%]">
-              <button
-                onClick={() => setGender("ชาย")}
-                className={`${
-                  gender === "ชาย" && "bg-blue-500 text-white"
-                } text-sm p-1 px-3 rounded-md border border-gray-400`}
-              >
-                ชาย
-              </button>
-              <button
-                onClick={() => setGender("หญิง")}
-                className={`${
-                  gender === "หญิง" && "bg-blue-500 text-white"
-                } text-sm p-1 px-3 rounded-md border border-gray-400`}
-              >
-                หญิง
-              </button>
-            </div>
+            <span className="mt-1.5 flex items-center w-[75%] gap-2">
+              <Select
+                options={[
+                  { label: "ชาย", value: 1 },
+                  { label: "หญิง", value: 2 },
+                ]}
+                value={[
+                  { label: "ชาย", value: 1 },
+                  { label: "หญิง", value: 2 },
+                ].find((p) => p.label == gender)}
+                onChange={(option) => {
+                  setGender(option.label);
+                }}
+                className="w-full"
+                placeholder="เลือกคำนำหน้า"
+              />
+            </span>
           </span>
 
           {/* email */}

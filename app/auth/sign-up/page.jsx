@@ -1,5 +1,6 @@
 "use client";
 import Loader from "@/components/loader";
+import { Select } from "@/components/react-select";
 import { envConfig } from "@/config/env-config";
 import Loading from "@/layout/loading";
 import { popup } from "@/libs/alert-popup";
@@ -11,12 +12,14 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   FaAddressCard,
+  FaCheck,
   FaEye,
   FaEyeSlash,
   FaIdBadge,
   FaIdCard,
   FaKey,
   FaLock,
+  FaTimes,
   FaUser,
 } from "react-icons/fa";
 
@@ -81,31 +84,24 @@ const SignUp = () => {
       <p className="mt-5 text-gray-600">ข้อมูลทั่วไป</p>
 
       <p className="text-gray-800 mt-3">คำนำหน้า</p>
-      <span className="mt-1.5 flex items-center gap-2">
-        <button
-          onClick={() => setPrefix(1)}
-          className={` ${
-            prefix === 1 && "bg-blue-500 text-white"
-          } p-1.5 px-4 text-sm rounded-md border border-gray-500`}
-        >
-          นาย
-        </button>
-        <button
-          onClick={() => setPrefix(2)}
-          className={`${
-            prefix === 2 && "bg-blue-500 text-white"
-          } p-1.5 px-4 text-sm rounded-md border border-gray-500`}
-        >
-          นาง
-        </button>
-        <button
-          onClick={() => setPrefix(3)}
-          className={`${
-            prefix === 3 && "bg-blue-500 text-white"
-          } p-1.5 px-4 text-sm rounded-md border border-gray-500`}
-        >
-          นางสาว
-        </button>
+      <span className="mt-1.5 flex items-center w-full gap-2">
+        <Select
+          options={[
+            { label: "นาย", value: 1 },
+            { label: "นาง", value: 2 },
+            { label: "นางสาว", value: 3 },
+          ]}
+          value={[
+            { label: "นาย", value: 1 },
+            { label: "นาง", value: 2 },
+            { label: "นางสาว", value: 3 },
+          ].find((p) => p.value === prefix)}
+          onChange={(option) => {
+            setPrefix(option.value);
+          }}
+          className="w-full"
+          placeholder="เลือกคำนำหน้า"
+        />
       </span>
 
       <span className="w-full grid grid-cols-1 lg:grid-cols-2 gap-3.5 mt-3">
@@ -295,6 +291,69 @@ const SignUp = () => {
           {errors.confirm_pass.message}
         </small>
       )}
+
+      <div className="flex flex-col gap-1.5 mt-3.5 p-5 border border-gray-300 rounded-md bg-blue-100 w-full">
+        <span className="flex items-center gap-2">
+          {watch("password").length > 8 ? (
+            <FaCheck size={13} color="green" />
+          ) : (
+            <FaTimes size={13} color="red" />
+          )}
+          <p
+            className={`text-sm ${
+              watch("password").length > 8 ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            รหัสผ่านต้องมากกว่า 8 ตัวอักษร
+          </p>
+        </span>
+        <span className="flex items-center gap-2">
+          {/[A-Za-z]/.test(watch("password")) ? (
+            <FaCheck size={13} color="green" />
+          ) : (
+            <FaTimes size={13} color="red" />
+          )}
+          <p
+            className={`text-sm ${
+              /[A-Za-z]/.test(watch("password"))
+                ? "text-green-600"
+                : "text-red-600"
+            }`}
+          >
+            รหัสผ่านพยัญชนะต้องเป็นตัวอักษรภาษาอังกฤษเท่านั้น
+          </p>
+        </span>
+        <span className="flex items-center gap-2">
+          {/[^A-Za-z0-9]/.test(watch("password")) ? (
+            <FaCheck size={13} color="green" />
+          ) : (
+            <FaTimes size={13} color="red" />
+          )}
+          <p
+            className={`text-sm ${
+              /[^A-Za-z0-9]/.test(watch("password"))
+                ? "text-green-600"
+                : "text-red-600"
+            }`}
+          >
+            รหัสผ่านต้องประกอบด้วยอักขระพิเศษอย่างน้อย 1 ตัว
+          </p>
+        </span>
+        <span className="flex items-center gap-2">
+          {/\d/.test(watch("password")) ? (
+            <FaCheck size={13} color="green" />
+          ) : (
+            <FaTimes size={13} color="red" />
+          )}
+          <p
+            className={`text-sm ${
+              /\d/.test(watch("password")) ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            รหัสผ่านต้องประกอบด้วยตัวเลขอย่างน้อย 1 ตัว
+          </p>
+        </span>
+      </div>
 
       <Link
         href="/auth/sign-in"
