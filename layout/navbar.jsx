@@ -101,7 +101,8 @@ const Navbar = () => {
   useEffect(() => {
     if (checking) return;
 
-    if (user?.roleId > 1 && pathName.split("/")[1] !== "admin") {
+    console.log("🚀 ~ Navbar ~ user?.roleId:", user?.roleId)
+    if (user?.roleId > 1 && pathName.split("/")[1] !== "admin" ) {
       router.push("/admin/dashboard");
     }
   }, [user]);

@@ -1,4 +1,3 @@
-
 import { popup } from "@/libs/alert-popup";
 import axios from "axios";
 import { useEffect, useState } from "react";
@@ -6,20 +5,20 @@ import { useEffect, useState } from "react";
 export default function useProvince() {
   const [provinces, setProvinces] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [provinceOptions,setProvinceOptions] = useState([]);
+  const [provinceOptions, setProvinceOptions] = useState([]);
 
   const fetchProvinces = async () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        "https://raw.githubusercontent.com/kongvut/thai-province-data/master/api_province_with_amphure_tambon.json"
+        "https://raw.githubusercontent.com/kongvut/thai-province-data/refs/heads/master/api/latest/province_with_district_and_sub_district.json"
       );
       const province = res.data;
       setProvinces(province);
       const options = province.map((p) => ({
-        label:p.name_th,
-        value:p.name_th
-      }))
+        label: p.name_th,
+        value: p.name_th,
+      }));
       setProvinceOptions(options);
     } catch (err) {
       console.error(err);
@@ -36,6 +35,6 @@ export default function useProvince() {
   return {
     provinces,
     loading,
-    provinceOptions
+    provinceOptions,
   };
 }

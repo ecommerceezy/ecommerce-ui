@@ -168,11 +168,11 @@ const Orders = () => {
       );
       if (res.status === 200) {
         popup.success(
-          status === "cancel"
-            ? "ยกเลิกคำสั่งซื้อแล้ว"
-            : "ยืนยันคำสั่งซื้อแล้ว"
+          status === "cancel" ? "ยกเลิกคำสั่งซื้อแล้ว" : "ยืนยันคำสั่งซื้อแล้ว"
         );
         fetchOrderHistory(searchStatus, sort, page, take, search);
+        getOrderAvg();
+        setShowModal(false);
       }
     } catch (error) {
       console.error(error);

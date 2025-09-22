@@ -140,7 +140,7 @@ export default function FixedDownloadInvoiceButton({ bill }) {
         [
           "รวมราคาสินค้า:",
           `${(
-            (bill.bill_totalamount || 0) - (bill.bill_freighttotal || 0)
+            (bill.bill_totalamount) 
           ).toLocaleString("en-US")} THB`,
         ],
         [

@@ -51,13 +51,17 @@ const Address = () => {
         setZipcode(res.data?.zipcode);
 
         setAmphures(
-          provinces.filter((p) => p.name_th === res.data?.province)[0]?.amphure
+          provinces.filter((p) => p.name_th === res.data?.province)[0]
+            ?.districts
         );
         setTambons(
           provinces
             .filter((p) => p.name_th === res.data?.province)[0]
-            ?.amphure.filter((p) => p.name_th === res?.data?.amphure)[0]?.tambon
+            ?.districts.filter(
+              (p) => `อ.${p.name_th}` === res?.data?.amphure
+            )[0]?.sub_districts
         );
+
       }
     } catch (error) {
       console.error(error);
@@ -178,7 +182,7 @@ const Address = () => {
                     setAmphures(
                       provinces.filter(
                         (p) => p.name_th === watch("province")
-                      )[0]?.amphure
+                      )[0]?.districts
                     );
                   }}
                   className="mt-1 w-full"
@@ -218,15 +222,16 @@ const Address = () => {
                         label: a.name_th,
                         value: a.name_th,
                       }))
-                      .find((t) => t.value === watch("amphure")) || null
+                      .find((t) => `อ.${t.value}` === watch("amphure")) || null
                   }
                   placeholder={"เลือกอำเภอ"}
                   onChange={(option) => {
                     setValue("tambon", "");
-                    setValue("amphure", option.value);
+                    setValue("amphure", `อ.${option.value}`);
                     setTambons(
-                      amphures?.filter((p) => p.name_th === watch("amphure"))[0]
-                        ?.tambon
+                      amphures?.filter(
+                        (p) => `อ.${p.name_th}` === watch("amphure")
+                      )[0]?.sub_districts
                     );
                   }}
                   isSearchable
@@ -269,14 +274,15 @@ const Address = () => {
                         label: a.name_th,
                         value: a.name_th,
                       }))
-                      .find((t) => t.value === watch("tambon")) || null
+                      .find((t) => `ต.${t.value}` === watch("tambon")) || null
                   }
                   placeholder={"เลือกตำบล"}
                   onChange={(option) => {
-                    setValue("tambon", option.value);
+                    setValue("tambon", `ต.${option.value}`);
                     setZipcode(
-                      tambons?.filter((p) => p.name_th === watch("tambon"))[0]
-                        ?.zip_code
+                      tambons?.filter(
+                        (p) => `ต.${p.name_th}` === watch("tambon")
+                      )[0]?.zip_code
                     );
                   }}
                   isSearchable

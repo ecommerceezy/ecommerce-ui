@@ -441,10 +441,10 @@ const Members = () => {
             <p className="w-[7%] text-start">ลำดับ</p>
             <p className="w-[28%] text-start">สมาชิก</p>
             <p className="w-[20%] text-start">จำนวนครั้งสั่งซื้อ</p>
+            <p className="w-[23%] text-center">ยอดรวม</p>
             <span className="w-[22%] flex items-center justify-center text-center gap-2">
               <p>สถานะ</p>
             </span>
-            <p className="w-[23%] text-center">ดำเนินการ</p>
           </div>
 
           <div className="w-full flex flex-col mt-1 h-[500px] overflow-auto">
@@ -481,6 +481,9 @@ const Members = () => {
                   <div className="w-full lg:w-[20%] flex justify-start flex-col gap-1 lg:text-start break-words">
                     <p>{m?._count?.bill_orders?.toLocaleString()} ครั้ง</p>
                   </div>
+                  <span className="w-full lg:w-[23%] lg:flex justify-center items-center">
+                    ฿{m?.total?.toLocaleString()}
+                  </span>
 
                   <div className="w-full lg:w-[22%] flex items-center justify-center">
                     <Switch
@@ -495,12 +498,6 @@ const Members = () => {
                       checkedIcon={false}
                     />
                   </div>
-
-                  <span className="w-full lg:w-[23%] lg:flex justify-center items-center">
-                    <button className="underline text-red-500">
-                      <FaTrash />
-                    </button>
-                  </span>
                 </div>
               ))
             ) : (

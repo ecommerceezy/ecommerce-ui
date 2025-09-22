@@ -49,9 +49,8 @@ const Layout = ({ children }) => {
     if (checking) return;
 
     const timeout = setTimeout(() => {
-      if (!user?.user_id) {
-        router.push("/");
-      }
+      if (user?.user_id) return;
+      router.push("/");
     }, 1100);
 
     return () => clearTimeout(timeout);
