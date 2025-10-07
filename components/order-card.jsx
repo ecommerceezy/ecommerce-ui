@@ -3,6 +3,11 @@ import { NO_IMG_PRODUCT } from "@/app/admin/product/page";
 import { envConfig } from "@/config/env-config";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  AiFillCheckCircle,
+  AiFillClockCircle,
+  AiOutlineSearch,
+} from "react-icons/ai";
 import { FaCarAlt, FaCheck, FaClock, FaTimes, FaTruck } from "react-icons/fa";
 
 const OrderCard = ({
@@ -15,6 +20,7 @@ const OrderCard = ({
   pm_method,
   updateOrderStatus,
   bill_date,
+  bill_totalDiscount,
 }) => {
   const router = useRouter();
 
@@ -44,40 +50,60 @@ const OrderCard = ({
           </p>
         </span>
 
-        <span
-          className={`flex flex-col lg:flex-row items-center gap-2 text-sm ${
-            status_pm === "pending"
-              ? "text-orange-400"
-              : status_pm === "sending"
-              ? "text-purple-500"
-              : status_pm === "recevied"
-              ? "text-green-500"
-              : "text-red-500"
-          }`}
-        >
-          {status_pm === "pending" ? (
-            <>
-              <FaClock />
-              <p>รอยืนยัน</p>
-            </>
-          ) : status_pm === "sending" ? (
-            <>
-              <FaTruck />
-              <p>กำลังจัดส่ง</p>
-            </>
-          ) : status_pm === "recevied" ? (
-            <>
-              {" "}
-              <FaCheck />
-              <p>ได้รับแล้ว</p>
-            </>
-          ) : (
-            <>
-              <FaTimes />
-              <p>ยกเลิก</p>
-            </>
+        <div className="flex flex-col gap-0.5 items-end">
+          <span
+            className={`flex flex-col lg:flex-row items-center p-2 gap-2 text-sm ${
+              status_pm === "pending"
+                ? "text-orange-500 bg-orange-50 shadow-sm"
+                : status_pm === "sending"
+                ? "text-purple-500 bg-purple-50 shadow-sm"
+                : status_pm === "recevied"
+                ? "text-green-500 bg-green-50 shadow-sm"
+                : "text-red-500 bg-red-50 shadow-sm"
+            }`}
+          >
+            {status_pm === "pending" ? (
+              <>
+                <FaClock />
+                <p>รอยืนยัน</p>
+              </>
+            ) : status_pm === "sending" ? (
+              <>
+                <FaTruck />
+                <p>กำลังจัดส่ง</p>
+              </>
+            ) : status_pm === "recevied" ? (
+              <>
+                {" "}
+                <FaCheck />
+                <p>ได้รับแล้ว</p>
+              </>
+            ) : (
+              <>
+                <FaTimes />
+                <p>ยกเลิกแล้ว</p>
+              </>
+            )}
+          </span>
+          {status_pm === "return_pending" && (
+            <span className="flex items-center gap-2 text-xs text-orange-500 p-0.5 rounded-md bg-red-50">
+              <AiOutlineSearch />
+              <p className=" ">อยู่ระหว่างตรวจสอบคำขอคืนเงิน</p>
+            </span>
           )}
-        </span>
+          {status_pm === "return_sending" && (
+            <span className="flex items-center gap-2 text-xs text-green-500 p-0.5 rounded-md bg-green-50">
+              <AiFillClockCircle />
+              <p className=" ">หลักฐานการคืนเงินถูกอัปโหลดแล้ว</p>
+            </span>
+          )}
+          {status_pm === "return_confirmed" && (
+            <span className="flex items-center gap-2 text-xs text-blue-500 p-0.5 rounded-md bg-blue-50">
+              <AiFillCheckCircle />
+              <p className=" ">ได้รับเงินคืนแล้ว</p>
+            </span>
+          )}
+        </div>
       </div>
       <span className="flex flex-col lg:flex-row items-center justify-between p-3 border-b border-gray-300">
         <div className="lg:w-[80px] w-full h-[80px] border border-gray-100">
@@ -101,7 +127,7 @@ const OrderCard = ({
         </div>
 
         <span className="flex items-center justify-end gap-2 w-full lg:w-[10%]">
-          <p className="font-bold text-orange-500">
+          <p className="font-bold text-black">
             ฿{Number(order_details[0]?.total_amount).toLocaleString()}
           </p>
         </span>
@@ -110,8 +136,8 @@ const OrderCard = ({
       <div className="p-5 w-full flex flex-col items-end bg-gradient-to-r from-teal-50 to-cyan-50">
         <span className="flex items-center gap-1">
           <p className="text-gray-600 text-sm">รวมการสังซื้อ : </p>
-          <p className="text-xl font-bold text-orange-600">
-            ฿{Number(bill_totalamount).toLocaleString()}
+          <p className="text-xl font-bold text-black">
+            ฿{Number(bill_totalamount - bill_totalDiscount).toLocaleString()}
           </p>
         </span>
         <span className="flex flex-col lg:flex-row lg:items-center justify-between w-full mt-2.5">
@@ -151,6 +177,30 @@ const OrderCard = ({
                 >
                   ซื้ออีกครั้ง
                 </Link>
+
+                {status_pm === "cancel" && pm_method === "QR Promptpay" && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      updateOrderStatus("return_pending", bill_id);
+                    }}
+                    className="p-3 hover:bg-orange-600 px-5 bg-orange-500 text-white border border-gray-200"
+                  >
+                    ส่งคำขอคืนเงิน
+                  </button>
+                )}
+                {status_pm === "return_sending" &&
+                  pm_method === "QR Promptpay" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        updateOrderStatus("return_confirmed", bill_id);
+                      }}
+                      className="p-3 hover:bg-green-600 px-5 bg-green-500 text-white border border-gray-200"
+                    >
+                      ได้รับเงินคืนแล้ว
+                    </button>
+                  )}
               </>
             )}
           </div>

@@ -139,9 +139,17 @@ export default function FixedDownloadInvoiceButton({ bill }) {
       const summaryItems = [
         [
           "รวมราคาสินค้า:",
-          `${(
-            (bill.bill_totalamount) 
-          ).toLocaleString("en-US")} THB`,
+          `${bill.bill_totalamount.toLocaleString("en-US")} THB`,
+        ],
+        [
+          "รวมราคาส่วนลด",
+          `${bill.bill_totalDiscount.toLocaleString("en-US")} THB`,
+        ],
+        [
+          "รวมราคาสินค้าหลังหักส่วนลด",
+          `${(bill.bill_totalamount - bill.bill_totalDiscount).toLocaleString(
+            "en-US"
+          )} THB`,
         ],
         [
           "ค่าจัดส่ง:",
@@ -149,9 +157,7 @@ export default function FixedDownloadInvoiceButton({ bill }) {
         ],
         [
           "ยอดชำระทั้งหมด",
-          `${(bill.bill_price || 0).toLocaleString(
-            "en-US"
-          )} THB`,
+          `${(bill.bill_price || 0).toLocaleString("en-US")} THB`,
         ],
       ];
 
@@ -167,7 +173,7 @@ export default function FixedDownloadInvoiceButton({ bill }) {
           doc.setTextColor(...textColor);
         }
 
-        doc.text(label, 125, summaryY);
+        doc.text(label, 120, summaryY);
         doc.text(value, 185, summaryY, { align: "right" });
         summaryY += 8;
       });

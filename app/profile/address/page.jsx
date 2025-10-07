@@ -1,38 +1,17 @@
 "use client";
 import Loader from "@/components/loader";
-import { Select } from "@/components/react-select";
 import { envConfig } from "@/config/env-config";
 import useGetSeesion from "@/hooks/useGetSession";
-import useProvince from "@/hooks/useProvince";
 import Loading from "@/layout/loading";
 import { popup } from "@/libs/alert-popup";
 import axios from "axios";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { FaCheck } from "react-icons/fa";
+import { FaCheck, FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 
 const Address = () => {
-  const { loading, provinceOptions, provinces } = useProvince();
   const { user, checking } = useGetSeesion();
-  const [amphures, setAmphures] = useState();
-  const [tambons, setTambons] = useState();
-  const [zipcode, setZipcode] = useState();
-
-  const {
-    handleSubmit,
-    formState: { errors },
-    reset,
-    watch,
-    setValue,
-    control,
-  } = useForm({
-    defaultValues: {
-      address: "",
-      tambon: "",
-      amphure: "",
-      province: "",
-    },
-  });
+  const [address, setAddress] = useState(null);
 
   const [geting, setGeting] = useState(false);
   const getUserAddress = async () => {
@@ -42,26 +21,7 @@ const Address = () => {
         withCredentials: true,
       });
       if (res.status === 200) {
-        reset({
-          address: res.data?.address || "",
-          province: res.data?.province || "",
-          amphure: res?.data?.amphure || "",
-          tambon: res.data?.tambon || "",
-        });
-        setZipcode(res.data?.zipcode);
-
-        setAmphures(
-          provinces.filter((p) => p.name_th === res.data?.province)[0]
-            ?.districts
-        );
-        setTambons(
-          provinces
-            .filter((p) => p.name_th === res.data?.province)[0]
-            ?.districts.filter(
-              (p) => `อ.${p.name_th}` === res?.data?.amphure
-            )[0]?.sub_districts
-        );
-
+        setAddress(res.data);
       }
     } catch (error) {
       console.error(error);
@@ -71,31 +31,45 @@ const Address = () => {
     }
   };
 
-  const [saving, setSaving] = useState(false);
-  const handleSaveData = async () => {
-    setSaving(true);
+  const [updating, setUpdating] = useState(false);
+  const handleUseAddress = async (address) => {
+    const { district: amphure, sub_distric: tambon, ...rest } = address;
+    if (address?.is_using) return;
+
+    const { isConfirmed } = await popup.confirmPopUp(
+      "คุณต้องการใช้ที่อยู่นี้หรือไม่?",
+      "เลือกใช้ที่อยู่นี้เป็นที่อยู่จัดส่ง",
+      "ยืนยัน"
+    );
+    if (!isConfirmed) return;
+
+    setUpdating(true);
     try {
-      const formData = new FormData();
-      formData.append(
-        "address",
-        `${watch("address")}/=/${watch("province")}/=/${watch(
-          "amphure"
-        )}/=/${watch("tambon")}/=/${zipcode}`
-      );
       const res = await axios.post(
-        envConfig.apiURL + "/user/update-info",
-        formData,
-        { withCredentials: true }
+        envConfig.apiURL + `/user/update-address/${address?.id}`,
+        {
+          amphure,
+          tambon,
+          ...rest,
+          is_using: true,
+        },
+        {
+          withCredentials: true,
+        }
       );
+      if (res.data.err) {
+        popup.err(res.data.err);
+        return;
+      }
       if (res.status === 200) {
         getUserAddress();
-        popup.success();
+        popup.success("เปลี่ยนที่อยู่จัดส่งเรียบร้อย");
       }
     } catch (error) {
       console.error(error);
       popup.err();
     } finally {
-      setSaving(false);
+      setUpdating(false);
     }
   };
 
@@ -110,226 +84,66 @@ const Address = () => {
   return (
     <div className="w-full">
       {" "}
-      <div className="flex flex-col pb-3 w-full border-b border-gray-300">
-        <p className=" text-gray-700">ที่อยู่</p>
-        <p className="text-gray-600 text-sm">
-          เพิ่มและแก้ไข ข้อมูลที่อยู่จัดส่งหรือที่อยู่ที่ติดต่อได้
-        </p>
-      </div>
-      {/* address */}
-      <div className="mt-8 w-full flex flex-col items-start">
-        <span className="flex items-center gap-3.5 lg:w-[60%] w-full pl-3">
-          <p className="text-sm text-gray-600 w-[20%]">ที่อยู่</p>
-          <div className="flex flex-col w-[75%]">
-            <Controller
-              name="address"
-              rules={{
-                required: "กรุณากรอกที่อยู่",
-                validate: (value) => {
-                  if (value.length < 30) return "ที่อยู่สั้นเกินไป";
-                  if (value.length > 50) return "ที่อยู่ยาวเกินไป";
-                },
-              }}
-              control={control}
-              render={({ field }) => (
-                <input
-                  value={field || ""}
-                  {...field}
-                  type="text"
-                  className="w-full text-[0.9rem] p-2 px-3 text-gray-800 border border-gray-400 rounded-md"
-                  placeholder="กรอกที่อยู่"
-                />
-              )}
-            />
-            {errors.address && (
-              <small className="mt-1 text-sm text-red-500">
-                {errors.address.message}
-              </small>
-            )}
-          </div>
-        </span>
-      </div>
-      {/* province */}
-      <div className="mt-8 w-full flex flex-col items-start">
-        <span className="flex items-center gap-3.5 lg:w-[60%] w-full pl-3">
-          <p className="text-sm text-gray-600 w-[20%]">จังหวัด</p>
-          <div className="flex flex-col w-[75%]">
-            <Controller
-              name="province"
-              rules={{
-                required: "โปรดระบุจังหวัด",
-              }}
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isDisabled={loading}
-                  options={provinceOptions}
-                  placeholder={"เลือกจังหวัด"}
-                  value={
-                    provinces
-                      ?.map((a) => ({
-                        label: a.name_th,
-                        value: a.name_th,
-                      }))
-                      .find((t) => t.value === watch("province")) || null
-                  }
-                  isSearchable
-                  onChange={(option) => {
-                    setValue("amphure", "");
-                    setValue("tambon", "");
-                    setValue("province", option.value);
-                    setAmphures(
-                      provinces.filter(
-                        (p) => p.name_th === watch("province")
-                      )[0]?.districts
-                    );
-                  }}
-                  className="mt-1 w-full"
-                />
-              )}
-            />
-            {errors.province && (
-              <small className="text-sm text-red-500 mt-1 ml-1">
-                {errors.province.message}
-              </small>
-            )}
-          </div>
-        </span>
-      </div>
-      {/* amphure */}
-      <div className="mt-8 w-full flex flex-col items-start">
-        <span className="flex items-center gap-3.5 lg:w-[60%] w-full pl-3">
-          <p className="text-sm text-gray-600 w-[20%]">อำเภอ/เขต</p>
-          <div className="flex flex-col w-[75%]">
-            <Controller
-              name="amphure"
-              rules={{
-                required: "โปรดเลือกอำเภอ",
-              }}
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isDisabled={loading || !watch("province")}
-                  options={amphures?.map((a) => ({
-                    label: a.name_th,
-                    value: a.name_th,
-                  }))}
-                  value={
-                    amphures
-                      ?.map((a) => ({
-                        label: a.name_th,
-                        value: a.name_th,
-                      }))
-                      .find((t) => `อ.${t.value}` === watch("amphure")) || null
-                  }
-                  placeholder={"เลือกอำเภอ"}
-                  onChange={(option) => {
-                    setValue("tambon", "");
-                    setValue("amphure", `อ.${option.value}`);
-                    setTambons(
-                      amphures?.filter(
-                        (p) => `อ.${p.name_th}` === watch("amphure")
-                      )[0]?.sub_districts
-                    );
-                  }}
-                  isSearchable
-                  className="mt-1 w-full"
-                />
-              )}
-            />
-            {errors.amphure && (
-              <small className="text-sm text-red-500 mt-1 ml-1">
-                {errors.amphure.message}
-              </small>
-            )}
-          </div>
-        </span>
-      </div>
-      {/* tambon */}
-      <div className="mt-8 w-full flex flex-col items-start">
-        <span className="flex items-center gap-3.5 lg:w-[60%] w-full pl-3">
-          <p className="text-sm text-gray-600 w-[20%]">ตำบล/แขวง</p>
-          <div className="flex flex-col w-[75%]">
-            <Controller
-              name="tambon"
-              rules={{
-                required: "โปรดเลือกตำบล",
-              }}
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  isDisabled={
-                    loading || !watch("province") || !watch("amphure")
-                  }
-                  options={tambons?.map((a) => ({
-                    label: a.name_th,
-                    value: a.name_th,
-                  }))}
-                  value={
-                    tambons
-                      ?.map((a) => ({
-                        label: a.name_th,
-                        value: a.name_th,
-                      }))
-                      .find((t) => `ต.${t.value}` === watch("tambon")) || null
-                  }
-                  placeholder={"เลือกตำบล"}
-                  onChange={(option) => {
-                    setValue("tambon", `ต.${option.value}`);
-                    setZipcode(
-                      tambons?.filter(
-                        (p) => `ต.${p.name_th}` === watch("tambon")
-                      )[0]?.zip_code
-                    );
-                  }}
-                  isSearchable
-                  className="mt-1 w-full"
-                />
-              )}
-            />
-            {errors.tambon && (
-              <small className="text-sm text-red-500 mt-1 ml-1">
-                {errors.tambon.message}
-              </small>
-            )}
-          </div>
-        </span>
-      </div>
-      {/* zipcode */}
-      <div className="mt-8 w-full flex flex-col items-start">
-        <span className="flex items-center gap-3.5 lg:w-[60%] w-full pl-3">
-          <p className="text-sm text-gray-600 w-[20%]">รหัสไปรษณีย์</p>
-          <div className="flex flex-col w-[75%]">
-            {watch("tambon") ? (
-              <p>{zipcode}</p>
-            ) : (
-              <p className="text-red-500 text-sm">โปรดเลือกตำบล</p>
-            )}
-          </div>
-        </span>
-      </div>
-      <div className="lg:w-[90%] w-full pl-3 mt-8">
-        <button
-          disabled={checking || saving}
-          onClick={handleSubmit(handleSaveData)}
-          className="p-2 text-sm hover:bg-blue-600 px-3 text-white rounded-md flex items-center gap-2 bg-blue-500"
+      <div className="flex items-center pb-3 border-b border-gray-300 justify-between w-full">
+        <div className="flex flex-col">
+          <p className=" text-gray-700">ที่อยู่</p>
+          <p className="text-gray-600 text-sm">
+            เพิ่มและแก้ไข ข้อมูลที่อยู่จัดส่งหรือที่อยู่ที่ติดต่อได้
+          </p>
+        </div>
+        <Link
+          href="/profile/address/0"
+          className="p-2.5 px-3 text-sm text-white bg-blue-500 flex items-center gap-2 rounded-md shadow-md"
         >
-          {saving ? (
-            <>
-              <Loader />
-              <p>กำลังบันทึก...</p>
-            </>
-          ) : (
-            <>
-              {" "}
-              <FaCheck />
-              <p>บันทึก</p>
-            </>
-          )}
-        </button>
+          <FaPlus />
+          <p>เพิ่มที่อยู่</p>
+        </Link>
+      </div>
+      <div className="w-full mt-3 flex flex-col">
+        {updating ? (
+          <div className="w-full py-10 flex flex-col items-center gap-1">
+            <div className="w-10 h-10 border-4 border-blue-500 border-t-white rounded-full animate-spin" />
+            <p>กำลังโหลด..</p>
+          </div>
+        ) : address?.length < 1 ? (
+          <div className=""></div>
+        ) : (
+          address?.map((a) => (
+            <div
+              key={a?.id}
+              className="relative py-10 border-b cursor-pointer border-gray-300 flex items-center gap-5"
+            >
+              {a?.is_using && (
+                <span className="p-2 absolute top-1 left-0 text-xs text-green-600 bg-green-100 rounded-lg shadow-sm">
+                  ใช้งานอยู่
+                </span>
+              )}
+              <input
+                type="radio"
+                onChange={() => handleUseAddress(a)}
+                checked={a?.is_using}
+                name="using"
+              />{" "}
+              <span className="w-[80%] flex flex-col gap-0.5">
+                <p className="w-full  break-words">
+                  {`
+                ${a?.address} ${a?.sub_district} ${a?.district} จ.${a?.province} ${a?.zipcode}
+                `}
+                </p>
+                <p className="text-sm text-gray-500">
+                  เบอร์โทรศัพท์ : {a?.phone}
+                </p>
+              </span>
+              <div className="flex items-center gap-5">
+                <Link href={`/profile/address/${a?.id}`}>
+                  <FaEdit color="blue" className="" />
+                </Link>
+
+                <FaTrash color="red" className="cursor-pointer" />
+              </div>
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

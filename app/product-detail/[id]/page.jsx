@@ -66,6 +66,10 @@ const ShopDetail = () => {
   };
 
   const handleSaveToCart = () => {
+    if (product?.pro_number < 1) {
+      popup.warning("สินค้าหมด");
+      return false;
+    }
     if (colorOptions.length > 1 && !selectColor) {
       popup.warning("กรุณาเลือกสี");
       return false;
@@ -124,6 +128,7 @@ const ShopDetail = () => {
   }, [sameCtgProduct]);
 
   useEffect(() => {
+    if (!id) return;
     fetchProduct(id);
   }, [id]);
 
@@ -175,30 +180,44 @@ const ShopDetail = () => {
           <p className="text-lg w-full break-words">{product?.pro_name}</p>
 
           {/* promotion */}
-          {/* <span className="flex flex-col mt-3">
-            <p className="w-full p-1.5 px-3 text-white bg-orange-500 text-sm">
-              โปรโมชันราคาพิเศษ
-            </p>
-            <span className="p-3 px-5 bg-gradient-to-r from-gray-100 to-blue-100 w-full flex items-center gap-2.5">
-              <p className="text-2xl font-bold text-red-500">฿50</p>
-              <p className="text-gray-600 line-through">฿100</p>
-              <p className="p-1 text-sm px-3 border-2 border-yellow-500 bg-red-500 text-white">
-                -50%
+          {product?.promotion?.discount ? (
+            <span className="flex flex-col mt-3">
+              <p className="w-full p-1.5 px-3 text-white bg-orange-500 text-sm">
+                โปรโมชันราคาพิเศษ
               </p>
+              <span className="p-3 px-5 bg-gradient-to-r from-gray-100 to-blue-100 w-full flex items-center gap-2.5">
+                <p className="text-2xl font-bold text-red-500">
+                  ฿{product?.pro_price?.toLocaleString()}
+                </p>
+                <p className="text-gray-600 line-through">
+                  ฿
+                  {(
+                    product?.pro_price -
+                    Math.round(
+                      (Number(product?.promotion?.discount) / 100) *
+                        product?.pro_price
+                    )
+                  ).toLocaleString()}
+                </p>
+                <p className="p-1 text-sm px-3 border-2 border-yellow-500 bg-red-500 text-white">
+                  -{product?.promotion?.discount}%
+                </p>
+              </span>
             </span>
-          </span> */}
+          ) : (
+            <div className="w-full mt-5 pt-5 border-t-4 border-blue-500 flex items-center justify-between gap-10">
+              <p className="text-gray-600 text-sm w-[15%]">ราคา</p>
+
+              <div className="flex items-end gap-1.5 w-[80%]">
+                <p className=" text-3xl break-all text-blue-500 font-bold">
+                  {Number(product?.pro_price || 0).toLocaleString()}฿
+                </p>
+                <p className="">/ {product?.unit || "ชิ้น"}</p>
+              </div>
+            </div>
+          )}
 
           {/* normal price */}
-          <div className="w-full mt-5 pt-5 border-t-4 border-blue-500 flex items-center justify-between gap-10">
-            <p className="text-gray-600 text-sm w-[15%]">ราคา</p>
-
-            <div className="flex items-end gap-1.5 w-[80%]">
-              <p className=" text-3xl break-all text-blue-500 font-bold">
-                {Number(product?.pro_price || 0).toLocaleString()}฿
-              </p>
-              <p className="">/ หน่วย</p>
-            </div>
-          </div>
 
           {/* about product */}
           <div className="w-full mt-10 flex items-start justify-between gap-10">
@@ -214,6 +233,27 @@ const ShopDetail = () => {
             <p className="text-gray-600 text-sm w-[15%]">เกี่ยวกับสินค้า</p>
 
             <p className="w-[80%] text-sm break-all ">{product?.pro_details}</p>
+          </div>
+
+          {/* sell_count */}
+          <div className="w-full mt-10 flex items-start justify-between gap-10">
+            <p className="text-gray-600 text-sm w-[15%]">ขายแล้ว</p>
+
+            <p className="w-[80%] text-sm break-all ">
+              {product?.sell_count?.toLocaleString()} {product?.unit || "ชิ้น"}
+            </p>
+          </div>
+
+          {/* pro_number */}
+          <div className="w-full mt-10 flex items-start justify-between gap-10">
+            <p className="text-gray-600 text-sm w-[15%]">สต็อก</p>
+
+            <p className="w-[80%] text-sm break-all ">
+              {product?.pro_number?.toLocaleString()} {product?.unit || "ชิ้น"}
+              {product?.pro_number < 1 && (
+                <small className="text-red-500">(*สินค้าหมด)</small>
+              )}
+            </p>
           </div>
 
           {/* obtions */}

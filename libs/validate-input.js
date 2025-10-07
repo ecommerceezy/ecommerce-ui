@@ -41,3 +41,8 @@ export function isValidThaiPhone(phone) {
   const regex = /^0[0-9]{9}$/;
   return regex.test(cleaned);
 }
+
+export function isValidThaiBankAccount(accountNumber) {
+  const regex = /^[0-9]{10,12}$/;
+  return regex.test(accountNumber);
+}

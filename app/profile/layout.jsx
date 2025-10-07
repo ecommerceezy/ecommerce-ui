@@ -6,7 +6,9 @@ import { useEffect } from "react";
 import {
   FaAddressBook,
   FaCity,
+  FaCreditCard,
   FaIdCard,
+  FaPiggyBank,
   FaReceipt,
   FaUser,
 } from "react-icons/fa";
@@ -24,6 +26,12 @@ const Layout = ({ children }) => {
       icon: <FaUser color="blue" />,
       url: "/profile/user",
       title: "ข้อมูลส่วนตัว",
+    },
+    {
+      id: 5,
+      icon: <FaCreditCard color="pink" />,
+      url: "/profile/bank_account",
+      title: "บัญชีธนาคาร",
     },
     {
       id: 3,
@@ -57,7 +65,7 @@ const Layout = ({ children }) => {
   }, [user]);
 
   return (
-    <div className="w-full mt-[19rem]  lg:w-[72%] flex flex-col lg:flex-row lg:mt-40">
+    <div className="w-full mt-[25rem]  lg:w-[72%] flex flex-col lg:flex-row lg:mt-40">
       <div className="flex flex-col w-full lg:w-[22%] pr-3 border-r border-gray-300">
         {/* profile */}
         <div className="flex justify-center lg:justify-start items-center w-full gap-3.5 pb-3 mb-3 border-b border-gray-300">
@@ -72,7 +80,7 @@ const Layout = ({ children }) => {
           </div>
           <div className="flex flex-col gap-0.5">
             <p className=" text-blue-500">ยินดีต้อนรับ</p>
-            <p className="font-bold">ปฐมพร</p>
+            <p className="font-bold">คุณ{user?.first_name}</p>
           </div>
         </div>
 

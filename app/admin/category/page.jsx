@@ -2,26 +2,33 @@
 import Modal from "@/components/model";
 import { envConfig } from "@/config/env-config";
 import { popup } from "@/libs/alert-popup";
-import { debounce } from "lodash";
+import { debounce, set } from "lodash";
 import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  FaCamera,
   FaCheck,
   FaChevronLeft,
   FaChevronRight,
   FaEdit,
+  FaFolder,
   FaPlus,
   FaSearch,
   FaTimes,
   FaTrash,
 } from "react-icons/fa";
 import Loader from "@/components/loader";
+import { NO_IMG_PRODUCT } from "../product/page";
 
 const Category = () => {
   const [showModal, setShowModal] = useState(false);
   const [editCtg, setEditCtg] = useState(null);
   const [search, setSearch] = useState("");
+
+  const [imgPreview, setImgPreview] = useState(null);
+  const [oldImg, setOldImg] = useState(null);
+  const [imgFile, setImgFile] = useState(null);
 
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
@@ -55,6 +62,13 @@ const Category = () => {
     debounceSearch(search, page);
   }, [search, page]);
 
+  const imagePicker = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImgFile(file);
+    setImgPreview(URL.createObjectURL(file));
+  };
+
   const [status, setStatus] = useState(0);
 
   const [saving, setSaving] = useState(false);
@@ -62,24 +76,35 @@ const Category = () => {
     if (status === 0) {
       return popup.err("กรุณาเลือกสถานะ");
     }
+    if (!imgPreview || (!editCtg && !imgFile)) {
+      return popup.err("กรุณาเลือกรูปภาพ");
+    }
 
     setSaving(true);
     try {
       const api = editCtg
         ? `/admin/update-ctg/${editCtg?.id}`
         : "/admin/create-ctg";
-      const res = await axios.post(
-        envConfig.apiURL + api,
-        { ...data, status: `${status}` },
-        {
-          withCredentials: true,
-        }
-      );
+
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("remark", data.remark);
+      formData.append("img", imgFile);
+      if (editCtg && imgFile) {
+        formData.append("changeImage", true);
+      }
+      formData.append("status", `${status}`);
+      const res = await axios.post(envConfig.apiURL + api, formData, {
+        withCredentials: true,
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       if (res.status === 200) {
         popup.success();
         reset();
         setStatus(0);
         setShowModal(false);
+        setImgFile(null);
+        setImgPreview(null);
         fetchCTG(search);
       }
     } catch (error) {
@@ -93,6 +118,8 @@ const Category = () => {
   const handleEdit = (ctg) => {
     setEditCtg(ctg);
     setStatus(Number(ctg?.status));
+    setOldImg(ctg?.img ? envConfig.imgURL + ctg?.img : null);
+    setImgPreview(ctg?.img ? envConfig.imgURL + ctg?.img : null);
     reset({
       name: ctg?.name,
       remark: ctg.remark,
@@ -115,8 +142,8 @@ const Category = () => {
         { withCredentials: true }
       );
       if (res.status === 200) {
-        popup.success("ลบข้อมูลแล้ว");
         fetchCTG(search);
+        popup.success("ลบข้อมูลแล้ว");
       }
     } catch (error) {
       console.error(error);
@@ -151,125 +178,140 @@ const Category = () => {
   return (
     <>
       {" "}
-      <div className="w-[80%] h-full  overflow-auto p-5 bg-white border border-gray-300">
+      <div className="w-full p-5 rounded-lg flex flex-col bg-white shadow-sm">
         <p className="text-2xl font-bold text-blue-500">จัดการหมวดหมู่</p>
         <p className="mt-1">เพิ่ม ลบ แก้ไข หมวดหมู่สินค้า</p>
+      </div>
+      <div className="w-full mt-5 pt-5 border-t border-blue-500 flex items-center flex-col">
+        <p className="w-full text-lg">หมวดหมู่ทั้งหมด ({total} หมวดหมู่)</p>
 
-        <div className="w-full mt-5 pt-5 border-t border-blue-500 flex items-center flex-col">
-          <p className="w-full text-lg">หมวดหมู่ทั้งหมด ({total} หมวดหมู่)</p>
+        <div className="mt-5 w-full flex flex-col lg:flex-row lg:items-center justify-between">
+          <div className="w-full bg-white lg:w-1/3 p-2.5 px-3 rounded-md border border-gray-300 shadow-md flex items-center gap-2.5">
+            <FaSearch />
+            <input
+              type="text"
+              name=""
+              className="w-[90%] "
+              placeholder="พิมพ์ค้นหา"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              id=""
+            />
+          </div>
+          <button
+            onClick={() => {
+              setShowModal(true);
+              setEditCtg(null);
+              reset({
+                name: "",
+                remark: "",
+              });
+              setImgFile(null);
+              setImgPreview("");
+            }}
+            className="p-2.5 text-[0.9rem] w-fit mt-3 lg:mt-0 text-white bg-blue-500 hover:bg-blue-600 flex items-center gap-2 rounded-md"
+          >
+            <FaPlus />
+            <p>เพิ่มหมวดหมู่</p>
+          </button>
+        </div>
 
-          <div className="mt-5 w-full flex flex-col lg:flex-row lg:items-center justify-between">
-            <div className="w-full lg:w-1/3 p-2.5 px-3 rounded-md border border-gray-300 shadow-md flex items-center gap-2.5">
-              <FaSearch />
-              <input
-                type="text"
-                name=""
-                className="w-[90%]"
-                placeholder="พิมพ์ค้นหา"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                id=""
-              />
-            </div>
-            <button
-              onClick={() => {
-                setShowModal(true);
-                setEditCtg(null);
-                reset({
-                  name: "",
-                  remark: "",
-                });
-              }}
-              className="p-2.5 text-[0.9rem] w-fit mt-3 lg:mt-0 text-white bg-blue-500 hover:bg-blue-600 flex items-center gap-2 rounded-md"
-            >
-              <FaPlus />
-              <p>เพิ่มหมวดหมู่</p>
-            </button>
+        <div className="w-full flex items-center text-sm mt-5 gap-2.5">
+          <button
+            onClick={prevPage}
+            className="p-2 text-white bg-blue-500 rounded-md shadow-sm"
+          >
+            <FaChevronLeft />
+          </button>
+          <p>
+            หน้า {page} จาก {totalPage}
+          </p>
+          <button
+            onClick={forwardPage}
+            className="p-2 text-white bg-blue-500 rounded-md shadow-sm"
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+
+        <div className="mt-3 w-full flex flex-col p-6 bg-white rounded-lg border border-gray-300 shadow-md shadow-gray-300">
+          <div className="w-full mb-3 items-center hidden lg:flex  pb-3 border-b border-blue-300">
+            <p className="w-[10%] text-start">ลำดับ</p>
+            <p className="w-[15%] text-start">รูปภาพ</p>
+            <p className="w-[20%] text-start">ชื่อหมวดหมู่</p>
+            <p className="w-[20%] text-start">คำอธิบาย</p>
+            <p className="w-[10%] text-center">จำนวนสินค้า</p>
+            <p className="w-[10%] text-center">สถานะ</p>
+            <p className="w-[15%] text-center">แอคชัน</p>
           </div>
 
-          <div className="w-full flex items-center text-sm mt-5 gap-2.5">
-            <button
-              onClick={prevPage}
-              className="p-2 text-white bg-blue-500 rounded-md shadow-sm"
-            >
-              <FaChevronLeft />
-            </button>
-            <p>
-              หน้า {page} จาก {totalPage}
-            </p>
-            <button
-              onClick={forwardPage}
-              className="p-2 text-white bg-blue-500 rounded-md shadow-sm"
-            >
-              <FaChevronRight />
-            </button>
-          </div>
-
-          <div className="mt-3 w-full flex flex-col p-6 rounded-lg border border-gray-300 shadow-md shadow-gray-300">
-            <div className="w-full mb-3 items-center hidden lg:flex  pb-3 border-b border-blue-300">
-              <p className="w-[10%] text-start">ลำดับ</p>
-              <p className="w-[25%] text-start">ชื่อหมวดหมู่</p>
-              <p className="w-[25%] text-start">คำอธิบาย</p>
-              <p className="w-[15%] text-center">จำนวนสินค้า</p>
-              <p className="w-[15%] text-center">สถานะ</p>
-              <p className="w-[15%] text-center">แอคชัน</p>
+          {loading ? (
+            <div className="flex flex-col w-full py-10 items-center gap-1">
+              {" "}
+              <div className="w-10 h-10 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin" />
+              <p>กำลังโหลด...</p>
             </div>
-
-            {loading ? (
-              <div className="flex flex-col w-full py-10 items-center gap-1">
-                {" "}
-                <div className="w-10 h-10 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin" />
-                <p>กำลังโหลด...</p>
-              </div>
-            ) : (
-              ctgList.map((c, index) => (
-                <div
-                  key={c?.id}
-                  className="cursor-pointer grid grid-cols-1 text-[0.9rem] border-b border-blue-100 hover:bg-blue-50 w-full lg:flex gap-2 lg:gap-0 items-center py-3"
-                >
-                  <p className="w-full lg:w-[10%] lg:text-start">
-                    {index + (page - 1) * 10 + 1}
-                  </p>
-                  <p className="w-full lg:w-[25%] lg:text-start break-words">
-                    {c?.name}
-                  </p>
-                  <p className="w-full lg:w-[25%] lg:text-start break-words">
-                    {c?.remark}
-                  </p>
-                  <p className="w-full lg:w-[15%] lg:text-center">
-                    {Number(c?._count?.products)} ชิ้น
-                  </p>
-                  <span
-                    className={`w-full lg:w-[15%] lg:flex justify-center items-center `}
-                  >
-                    <p
-                      className={`p-1 text-xs px-3 ${
-                        c?.status == 1
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-600"
-                      } rounded-full w-fit`}
-                    >
-                      {c?.status == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}
-                    </p>
-                  </span>
-                  <span className="w-full lg:w-[15%] lg:flex justify-center items-center">
-                    <div className="flex items-center gap-5">
-                      <FaEdit
-                        onClick={() => handleEdit(c)}
-                        size={18}
-                        className="cursor-pointer hover:text-blue-500"
-                      />
-                      <FaTrash
-                        onClick={() => handleDelete(c)}
-                        size={18}
-                        className="cursor-pointer hover:text-red-500"
-                      />
-                    </div>
-                  </span>
+          ) : ctgList.length > 0 ? (
+            ctgList.map((c, index) => (
+              <div
+                key={c?.id}
+                className="cursor-pointer grid grid-cols-1 text-[0.9rem] border-b border-blue-100 hover:bg-blue-50 w-full lg:flex gap-2 lg:gap-0 items-center py-3"
+              >
+                <p className="w-full lg:w-[10%] lg:text-start">
+                  {index + (page - 1) * 10 + 1}
+                </p>
+                <div className="w-[15%] h-[53px] flex justify-start overflow-hidden ">
+                  <img
+                    src={c?.img ? envConfig.imgURL + c?.img : NO_IMG_PRODUCT}
+                    className="w-[30%] h-full object-cover rounded-full shadow-md border border-gray-200"
+                    alt=""
+                  />
                 </div>
-              ))
-            )}
-          </div>
+                <p className="w-full lg:w-[20%] lg:text-start break-words">
+                  {c?.name}
+                </p>
+                <p className="w-full lg:w-[20%] lg:text-start break-words">
+                  {c?.remark}
+                </p>
+                <p className="w-full lg:w-[10%] lg:text-center">
+                  {Number(c?._count?.products)} ชิ้น
+                </p>
+                <span
+                  className={`w-full lg:w-[10%] lg:flex justify-center items-center `}
+                >
+                  <p
+                    className={`p-1 text-xs px-3 ${
+                      c?.status == 1
+                        ? "bg-green-100 text-green-600"
+                        : "bg-red-100 text-red-600"
+                    } rounded-full w-fit`}
+                  >
+                    {c?.status == 1 ? "เปิดใช้งาน" : "ปิดใช้งาน"}
+                  </p>
+                </span>
+                <span className="w-full lg:w-[15%] lg:flex justify-center items-center">
+                  <div className="flex items-center gap-5">
+                    <FaEdit
+                      onClick={() => handleEdit(c)}
+                      size={18}
+                      className="cursor-pointer hover:text-blue-500"
+                    />
+                    <FaTrash
+                      onClick={() => handleDelete(c)}
+                      size={18}
+                      className="cursor-pointer hover:text-red-500"
+                    />
+                  </div>
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="w-full flex flex-col items-center py-10 gap-2">
+              {" "}
+              <FaFolder size={50} className="text-gray-300" />
+              <p className="text-sm text-gray-500">ไม่พบข้อมูล</p>
+            </div>
+          )}
         </div>
       </div>
       {/* add edit */}
@@ -297,6 +339,27 @@ const Category = () => {
               <FaTimes size={20} />
             </button>
           </span>
+          <p className="mt-5">รูปภาพ</p>
+          <label
+            htmlFor="img-picker"
+            className="w-[20%] h-[90px] rounded-full shadow-md border text-sm overflow-hidden border-gray-300 bg-gray-50 text-gray-700 hover:bg-gray-200 mt-1 cursor-pointer flex flex-col items-center justify-center gap-1.5"
+          >
+            <input
+              onChange={imagePicker}
+              type="file"
+              className="hidden"
+              id="img-picker"
+            />
+            {imgPreview ? (
+              <img src={imgPreview} className="w-full h-full object-cover" />
+            ) : (
+              <>
+                {" "}
+                <FaCamera />
+                <p>อัปโหลดรูป</p>
+              </>
+            )}
+          </label>
 
           <p className="mt-5">ชื่อหมวดหมู่</p>
           <Controller

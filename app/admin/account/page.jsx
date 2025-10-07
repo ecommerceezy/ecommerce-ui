@@ -82,11 +82,13 @@ const Page = () => {
   };
 
   return (
-    <div className="w-full p-5 bg-white h-full overflow-auto border border-gray-300">
+    <>
       {" "}
-      <p className="text-2xl font-bold text-blue-500">เปลี่ยนรหัสผ่าน</p>
-      <p className="mt-1">เปลี่ยนรหัสผ่านบัญชีผู้ดูแลระบบ</p>
-      <div className="w-full flex items-center justify-center flex-col mt-5 pt-5 border-t-2 border-blue-500">
+      <div className="flex w-full flex-col gap-1 p-5 rounded-lg bg-white shadow-md">
+        <p className="text-2xl font-bold text-blue-500">เปลี่ยนรหัสผ่าน</p>
+        <p className="mt-1">เปลี่ยนรหัสผ่านบัญชีผู้ดูแลระบบ</p>
+      </div>
+      <div className="w-full flex items-center justify-center flex-col mt-5 pt-5 border-t-2 bg-white shadow-sm p-5 border-blue-500">
         <div className="mt-5 w-full flex flex-col items-center justify-center  gap-5 pl-5">
           <span className="flex lg:items-center flex-col lg:flex-row gap-3.5 lg:w-[60%] w-full">
             <p className="text-sm text-gray-600 w-[30%]">รหัสผ่านปัจจุบัน</p>
@@ -331,7 +333,7 @@ const Page = () => {
           </button>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 export default Page;

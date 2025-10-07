@@ -50,7 +50,6 @@ const Search = () => {
       const res = await axios.get(envConfig.apiURL + "/guest/get-ctg");
       if (res.status === 200) {
         setCategories(res.data);
-        console.log("🚀 ~ fetchCTG ~ res.data:", res.data);
       }
     } catch (error) {
       console.error(error);
@@ -144,6 +143,8 @@ const Search = () => {
   const resetSearch = () => {
     setMinPrice(0);
     setMaxPrice(0);
+    setInputMaxPrice(0);
+    setInputMinPrice(0);
     setSearchCtgs([]);
     setSort(JSON.stringify({ sell_count: "desc" }));
     setPage(1);
@@ -312,11 +313,6 @@ const Search = () => {
           </div>
         </div>
       </div>
-
-      {/* <Modal
-        isOpen={showResponSiveMenu}
-        onClose={() => setShowResponsiveMenu(false)}
-      ></Modal> */}
     </>
   );
 };

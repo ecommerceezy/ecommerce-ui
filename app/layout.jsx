@@ -21,7 +21,7 @@ export default function RootLayout({ children }) {
         <AppProvider>
           <Navbar />
 
-          <div className="w-full bg-gray-100 h-full flex flex-col items-center">
+          <div className="w-full bg-gray-50 h-full flex flex-col items-center">
             {children}
             <Footer />
           </div>

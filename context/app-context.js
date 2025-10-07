@@ -8,6 +8,7 @@ export const AppProvider = ({ children }) => {
   const [search, setSearch] = useState("");
   const [searchCtgs, setSearchCtgs] = useState([]);
   const [cart, setCart] = useState(0);
+  const [bannerWidth, setBannerWidth] = useState(0);
 
   return (
     <appContext.Provider
@@ -20,6 +21,8 @@ export const AppProvider = ({ children }) => {
         setCart,
         searchCtgs,
         setSearchCtgs,
+        bannerWidth,
+        setBannerWidth,
       }}
     >
       {children}

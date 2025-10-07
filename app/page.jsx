@@ -8,14 +8,8 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  FaArrowLeft,
-  FaArrowRight,
-  FaChevronLeft,
-  FaChevronRight,
-  FaProductHunt,
-  FaShoppingBasket,
-} from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaChevronRight } from "react-icons/fa";
+import { NO_IMG_PRODUCT } from "./admin/product/page";
 
 const bannersImg = [
   "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8cHJvZHVjdHxlbnwwfHwwfHx8MA%3D%3D",
@@ -40,7 +34,6 @@ const Home = () => {
   };
 
   const [currentIndex, setCurrentIndex] = useState(0);
-
   const nextSlide = () =>
     setCurrentIndex((prev) => (prev + 1) % bannersImg.length);
 
@@ -59,6 +52,7 @@ const Home = () => {
       const res = await axios.get(envConfig.apiURL + "/guest/get-ctg");
       if (res.status === 200) {
         setCategories(res.data);
+        console.log("🚀 ~ fetchCTG ~ res.data:", res.data)
       }
     } catch (error) {
       console.error(error);
@@ -83,9 +77,26 @@ const Home = () => {
     }
   };
 
+  const [bannersList, setBannerList] = useState([]);
+  const fetchBanners = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(envConfig.apiURL + "/guest/get-banners");
+      if (res.status === 200) {
+        setBannerList(res.data);
+      }
+    } catch (error) {
+      console.error(error);
+      popup.err();
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCTG();
     fetchProducts();
+    fetchBanners();
   }, []);
 
   useEffect(() => {
@@ -102,15 +113,24 @@ const Home = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // set banner width in context
+  const { setBannerWidth } = useAppContext();
+  useEffect(() => {
+    const bannerWrapper = document.getElementById("banner-wrapper");
+    if (bannerWrapper) {
+      const bannerWidth = bannerWrapper.offsetWidth;
+      setBannerWidth(bannerWidth);
+    }
+  }, [screenWidth]);
 
   if (loading) return <Loading />;
 
   return (
-    <div className="w-full items-center justify-center pb-5 flex flex-col lg:mt-36 mt-80">
+    <div className="w-full items-center justify-center pb-5 flex flex-col lg:mt-36 mt-80 bg-white">
       {/* banner */}
-      <div className="w-full lg:px-56 items-center justify-center bg-white border-b border-gray-300 py-6 pb-8 flex lg:flex-row flex-col gap-3">
+      <div className="w-full lg:px-56 items-center justify-center bg-white py-6 pb-8 flex lg:flex-row flex-col lg:gap-0 gap-3">
         <div
-          className={`relative lg:w-[800px] lg:mx-0 h-[220px] lg:h-[270px] border overflow-hidden`}
+          className={`relative lg:w-[800px] lg:mx-0 h-[220px] lg:h-[270px] border border-gray-700 overflow-hidden`}
         >
           <div className="w-full absolute top-24 flex items-center justify-between z-10">
             <button
@@ -143,16 +163,16 @@ const Home = () => {
           </div>
         </div>
         <div
-          className={`flex flex-col gap-3 lg:w-[300px] w-[${screenWidth}px]`}
+          className={`flex flex-col lg:gap-0 gap-3 lg:w-[300px] w-[${screenWidth}px]`}
         >
-          <div className="w-full lg:h-[130px] h-[200px] border">
+          <div className="w-full lg:h-[135px] h-[200px] border border-gray-700">
             <img
               src="https://cdn.pixabay.com/photo/2024/04/17/18/40/ai-generated-8702726_1280.jpg"
               className="w-full h-full object-cover"
               alt=""
             />
           </div>
-          <div className="w-full lg:h-[125px] h-[200px] border">
+          <div className="w-full lg:h-[135px] h-[200px] border border-gray-700">
             <img
               src="https://images.unsplash.com/photo-1615396899839-c99c121888b0?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fHByb2R1Y3R8ZW58MHx8MHx8fDA%3D"
               className="w-full h-full object-cover"
@@ -174,22 +194,22 @@ const Home = () => {
             <FaChevronRight size={18} />
           </Link>
         </span>
-        <div className="w-full grid md:grid-cols-5 grid-cols-4 items-center">
+        <div className="w-full grid md:grid-cols-5 grid-cols-3 items-center">
           {categories.map((c) => (
             <button
               key={c?.id}
               onClick={() => handleCtgClick(c?.id)}
-              className="p-5 flex flex-col gap-2 border border-gray-200 bg-gray-50 hover:bg-blue-100"
+              className="p-5 flex flex-col lg:items-center gap-2 border border-gray-200 bg-gray-50 hover:bg-blue-100"
             >
-              {/* <div className="w-full md:h-[60px] h-[80px] rounded-lg overflow-hidden shadow-md">
-              <img
-                src="https://cdn.pixabay.com/photo/2024/04/29/04/21/tshirt-8726716_1280.jpg"
-                className="w-full h-full object-cover"
-                alt=""
-              />
-            </div> */}
+              <div className="w-full lg:w-[35%] lg:h-[60px] h-[80px] rounded-full overflow-hidden shadow-md">
+                <img
+                  src={c?.img ? envConfig.imgURL + c?.img : NO_IMG_PRODUCT}
+                  className="w-full h-full object-cover"
+                  alt=""
+                />
+              </div>
 
-              <p>{c?.name}</p>
+              <p className="text-sm">{c?.name}</p>
             </button>
           ))}
         </div>
@@ -198,7 +218,7 @@ const Home = () => {
       <div className="lg:w-[72%] w-[95%] mt-8 flex border-b-4 border-blue-400 p-4 font-bold justify-center text-blue-600 bg-white">
         สินค้าแนะนำ
       </div>
-      <div className="mt-3 lg:w-[72%] w-[95%] grid md:grid-cols-6 grid-cols-3 gap-2.5 gap-y-3">
+      <div className="mt-3 lg:w-[72%] w-[95%] grid md:grid-cols-6 grid-cols-3 gap-3 gap-y-3">
         {products.map((p) => (
           <ProductCard key={p?.pro_id} {...p} />
         ))}
@@ -206,7 +226,7 @@ const Home = () => {
 
       <Link
         href="/search"
-        className="text-[0.9rem] gap-2 p-3 bg-white mt-16 px-24 border border-gray-200 hover:bg-blue-500 hover:text-white"
+        className="text-[0.9rem] gap-2 p-3 bg-gray-50 shadow-xs mt-16 px-24 border border-gray-200 hover:bg-blue-500 hover:text-white"
       >
         คลิกเพื่อดูสินค้าเพิ่มเติม
       </Link>

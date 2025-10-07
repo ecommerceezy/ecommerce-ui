@@ -32,9 +32,11 @@ const Page = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [totalPeace, setTotalPeace] = useState(0);
   const [totalFreight, setTotalFreight] = useState(0);
+  const [totalDiscount, setTotalDiscount] = useState(0);
   const [slip, setSlip] = useState("");
   const [slipFile, setSlipFile] = useState(null);
   const router = useRouter();
+  const [address, setAddress] = useState(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -44,6 +46,7 @@ const Page = () => {
       });
       if (res.status === 200) {
         setData(res.data);
+        setAddress(res.data?.tb_user_address?.[0] || null);
       }
     } catch (error) {
       console.error(error);
@@ -53,6 +56,7 @@ const Page = () => {
     }
   };
   useEffect(() => {
+    if (!user || checking) return;
     fetchData();
   }, [user]);
 
@@ -72,13 +76,24 @@ const Page = () => {
         (total, item) => total + item.count * item?.pro_price,
         0
       );
+      const totalDiscount = data
+        .slice()
+        .reduce(
+          (total, item) =>
+            total +
+            item.count *
+              Math.round(
+                (Number(item?.promotion?.discount || 0) / 100) * item?.pro_price
+              ),
+          0
+        );
+      setTotalDiscount(totalDiscount);
       setTotalAmount(totalAmount);
 
       const totalFreight = data?.reduce(
         (total, item) => Math.ceil((total + item?.freight) / data.length),
         0
       );
-      console.log("🚀 ~ getProduct ~ totalFreight:", totalFreight);
       setTotalFreight(totalFreight);
       setCartProduct(data);
     } catch (error) {
@@ -163,7 +178,8 @@ const Page = () => {
       formData.append("totalPeace", totalPeace);
       formData.append("totalProductPrice", totalAmount);
       formData.append("totalFreight", totalFreight);
-      formData.append("totalPay", totalFreight + totalAmount);
+      formData.append("totalPay", totalFreight + totalAmount - totalDiscount);
+      formData.append("totalDiscount", totalDiscount);
       formData.append("user_id", user?.user_id);
       if (paymentMethod === 2 && slipFile) {
         formData.append("slip", slipFile);
@@ -233,7 +249,14 @@ const Page = () => {
             )}
           </div>
           <div className="w-full lg:w-[70%] break-words">
-            {data?.address?.split("/=/")?.join(" ")}
+            {`${address?.address || "ไม่มีที่อยู่"} ${
+              address?.sub_district || ""
+            } ${address?.district || ""} จ.${address?.province || ""} ${
+              address?.zipcode || ""
+            } `}
+            <p className="text-sm text-gray-600">
+              เบอร์โทรศัพท์ : {address?.phone}
+            </p>
           </div>
           <Link
             href="/profile/address"
@@ -284,8 +307,30 @@ const Page = () => {
               </Link>
               <div className="flex items-center mt-2 lg:mt-0  w-full lg:w-1/2 justify-between px-5">
                 <span className="flex flex-col items-center">
-                  <p className="text-sm text-gray-600">ราคาต่อหน่วย</p>
-                  <p>฿{Number(c?.pro_price).toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">
+                    ราคาต่อ{c?.unit || "หน่วย"}
+                  </p>
+                  {c?.promotion?.discount ? (
+                    <>
+                      <p className="text-gray-600 text-sm line-through">
+                        {Number(c?.pro_price).toLocaleString()}฿
+                      </p>
+                      <p className="text-red-500">
+                        {(
+                          c?.pro_price -
+                          Math.round(
+                            (Number(c?.promotion?.discount) / 100) *
+                              c?.pro_price
+                          )
+                        ).toLocaleString()}
+                        ฿
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-gray-600">
+                      {Number(c?.pro_price).toLocaleString()}฿
+                    </p>
+                  )}
                 </span>
                 <span className="flex flex-col items-center">
                   <p className="text-sm text-gray-600">จำนวน</p>
@@ -293,9 +338,20 @@ const Page = () => {
                 </span>
                 <span className="flex flex-col items-center">
                   <p className="text-sm text-gray-600">ราคารวม</p>
-                  <p className="text-orange-600">
+                  <p className="text-black">
                     ฿{" "}
-                    {(Number(c?.count) * Number(c?.pro_price)).toLocaleString()}
+                    {c?.promotion?.discount
+                      ? (
+                          (c?.pro_price -
+                            Math.round(
+                              (Number(c?.promotion?.discount) / 100) *
+                                c?.pro_price
+                            )) *
+                          c?.count
+                        ).toLocaleString()
+                      : (
+                          Number(c?.count) * Number(c?.pro_price)
+                        ).toLocaleString()}
                   </p>
                 </span>
               </div>
@@ -354,13 +410,21 @@ const Page = () => {
               <p>฿{totalAmount.toLocaleString()}</p>
             </span>
             <span className="w-full flex items-center justify-between">
+              <p>รวมส่วนลด</p>
+              <p>฿{totalDiscount.toLocaleString()}</p>
+            </span>
+            <span className="w-full flex items-center justify-between">
+              <p>ราคาสินค้าหลังหักส่วนลด</p>
+              <p>฿{(totalAmount - totalDiscount).toLocaleString()}</p>
+            </span>
+            <span className="w-full flex items-center justify-between">
               <p>ค่าจัดส่ง</p>
               <p>฿{totalFreight.toLocaleString()}</p>
             </span>
             <span className="w-full flex items-center justify-between">
               <p>ยอดชำระทั้งหมด</p>
-              <p className="text-xl font-bold text-orange-500">
-                ฿{(totalAmount + totalFreight).toLocaleString()}
+              <p className="text-xl font-bold text-black">
+                ฿{(totalAmount + totalFreight - totalDiscount).toLocaleString()}
               </p>
             </span>
 
@@ -388,8 +452,49 @@ const Page = () => {
           >
             <FaTimes size={20} />
           </button>
+
           <p>สแกนเพื่อชำระเงิน</p>
 
+          <p className="w-full mt-5 text-sm text-gray-600">
+            รายละเอียดคำสั่งศื้อ
+          </p>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>สินค้าทั้งหมด</p>
+            <p>{cartProduct?.length?.toLocaleString()} รายการ</p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>จำนวน</p>
+            <p>
+              {totalPeace.toLocaleString()}
+              ชิ้น
+            </p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>รวมราคาสินค้า</p>
+            <p>฿{totalAmount.toLocaleString()}</p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>รวมส่วนลด</p>
+            <p>฿{totalDiscount.toLocaleString()}</p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>ราคาสันค้าหลักหักส่วนลด</p>
+            <p>฿{(totalAmount - totalDiscount).toLocaleString()}</p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>ค่าจัดส่ง</p>
+            <p>฿{totalFreight.toLocaleString()}</p>
+          </span>
+          <span className="w-full flex text-[0.85rem] items-center justify-between pb-3 mt-3 border-b border-gray-200">
+            <p>ยอดชำระทั้งหมด</p>
+            <p className="text-xl font-bold text-black">
+              ฿{(totalAmount + totalFreight - totalDiscount).toLocaleString()}
+            </p>
+          </span>
+
+          <p className="mt-8 text-sm text-gray-800">
+            สแกนคิวอาร์โค้ดนี้ผ่านแอปธนาคารเพื่อชำระเงิน
+          </p>
           <div className="w-full lg:w-2/3 mt-3 relative">
             <img
               src={qrCode || NO_IMG_PRODUCT}
@@ -397,6 +502,9 @@ const Page = () => {
               alt=""
             />
           </div>
+          <p className="mt-1 text-sm text-red-500">
+            จากนั้นอย่าลืมอัปโหลดสลิปเพื่อยืนยันการชำระเงิน
+          </p>
 
           <div className="flex items-center gap-2">
             <label

@@ -11,9 +11,11 @@ import {
   FaBars,
   FaChartArea,
   FaChartPie,
+  FaImages,
   FaList,
   FaReceipt,
   FaSignOutAlt,
+  FaTags,
   FaTimes,
   FaTshirt,
   FaUserAlt,
@@ -33,6 +35,12 @@ const Menu = () => {
       url: "/admin/dashboard",
       title: "Dashboard",
     },
+    // {
+    //   id: 7,
+    //   icon: <FaImages />,
+    //   url: "/admin/banners",
+    //   title: "จัดการแบนเนอร์",
+    // },
     {
       id: 3,
       icon: <FaList />,
@@ -56,6 +64,12 @@ const Menu = () => {
       icon: <FaUserAlt />,
       url: "/admin/members",
       title: "จัดการสมาชิก",
+    },
+    {
+      id: 8,
+      icon: <FaTags />,
+      url: "/admin/promotion",
+      title: "จัดการโปรโมชัน",
     },
     {
       id: 6,
@@ -145,10 +159,10 @@ const Menu = () => {
         </div>
 
         {/* developby */}
-        <div className="w-full items-start flex flex-col mb-2">
+        {/* <div className="w-full items-start flex flex-col mb-2">
           <p className="text-gray-100 text-xs">พัฒนาโดย</p>
           <p className="text-gray-100 text-xs">นายปฐมพร วงสุวรรณ 096-5850195</p>
-        </div>
+        </div> */}
       </div>
 
       {/* responsive button */}

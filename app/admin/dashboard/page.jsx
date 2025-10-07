@@ -7,12 +7,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import {
   FaBox,
-  FaBoxes,
   FaCheck,
+  FaCheckCircle,
   FaClock,
   FaDollarSign,
-  FaDownload,
-  FaExclamation,
+  FaExclamationCircle,
   FaShoppingCart,
   FaTimes,
   FaTruck,
@@ -23,6 +22,7 @@ import { v4 as uuid } from "uuid";
 import { NO_IMG_PRODUCT } from "../product/page";
 import ExportBtn from "@/components/export-btn";
 import { NO_PROFILE } from "@/app/profile/layout";
+import { AiOutlineSearch } from "react-icons/ai";
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(false);
@@ -103,13 +103,16 @@ const Dashboard = () => {
   if (loading) return <Loading />;
 
   return (
-    <div className="w-[80%] h-full  overflow-auto p-5 bg-white border border-gray-300">
-      <p className="text-2xl font-bold text-blue-500">Dashboard</p>
-      <p>ภาพรวมระบบซื้อขายออนไลน์</p>
+    <>
+      <div className="w-full bg-white flex flex-col p-5 roundedlg shadow-sm">
+        <p className="text-2xl font-bold text-blue-500">Dashboard</p>
+        <p>ภาพรวมระบบซื้อขายออนไลน์</p>
+      </div>
+
       <div className=" w-full mt-5 pt-3 border-t border-blue-500 flex flex-col items-start">
-        <ExportBtn data={[]} exportname={"รายงานยอดขาย"} />
+        <ExportBtn />
         <div className="grid lg:grid-cols-4 grid-cols-1 gap-3.5 mt-3 w-full">
-          <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
+          <div className="p-5 bg-white rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
             <span className="w-full flex items-center justify-between">
               <p className="text-green-600">ยอดขายปัจจุบัน</p>
               <div className="p-2 rounded-full border border-green-500">
@@ -121,9 +124,9 @@ const Dashboard = () => {
             </p>
             <p>บาท</p>
           </div>
-          <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
+          <div className="p-5 bg-white rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
             <span className="w-full flex items-center justify-between">
-              <p className="text-orange-600">คำสั่งซื้อใหม่</p>
+              <p className="text-orange-500">คำสั่งซื้อใหม่</p>
               <div className="p-2 rounded-full border border-orange-500">
                 <FaShoppingCart color="orange" />
               </div>
@@ -133,7 +136,7 @@ const Dashboard = () => {
             </p>
             <p>ออเดอร์</p>
           </div>
-          <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
+          <div className="p-5 bg-white rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
             <span className="w-full flex items-center justify-between">
               <p className="text-blue-600">สินค้าในสต็อก</p>
               <div className="p-2 rounded-full border border-blue-500">
@@ -145,7 +148,7 @@ const Dashboard = () => {
             </p>
             <p>ชิ้น</p>
           </div>
-          <div className="p-5 rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
+          <div className="p-5 bg-white rounded-lg border border-gray-300 shadow-md shadow-gray-300 flex flex-col gap-1.5">
             <span className="w-full flex items-center justify-between">
               <p className="text-purple-600">สมาชิก</p>
               <div className="p-2 rounded-full border border-purple-500">
@@ -162,7 +165,7 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-5 mb-10">
         {/* order */}
-        <div className="shadow-lg shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px]">
+        <div className="shadow-lg bg-white shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px]">
           <span className="w-full justify-between flex items-center gap-2 pb-3 border-b border-blue-300">
             <div className="flex items-center gap-2">
               <FaShoppingCart color="orange" />
@@ -181,14 +184,14 @@ const Dashboard = () => {
             <p>สถานะ</p>
           </div>
 
-          {lastestOrders.map((o) => (
-            <div
-              key={uuid()}
-              className="flex flex-col gap-2.5 overflow-auto py-2 border-b border-gray-300"
-            >
-              <div className="hover:bg-blue-50 cursor-pointer p-1.5 w-full flex items-center justify-between">
+          <div className="flex flex-col gap-2.5 overflow-auto py-2 border-b border-gray-300">
+            {lastestOrders.map((o) => (
+              <div
+                key={uuid()}
+                className="hover:bg-blue-50 cursor-pointer p-1.5 w-full flex items-center justify-between"
+              >
                 <span className="flex flex-col">
-                  <p className="text-xs text-orange-500">
+                  <p className="text-xs text-black">
                     {o?.bill_id?.slice(0, 30) + "..."}
                   </p>
                   <p className="text-sm">
@@ -196,14 +199,14 @@ const Dashboard = () => {
                     {o?.bill_productPeace?.toLocaleString()} ชิ้น
                   </p>
                 </span>
-                <span className="flex flex-col items-end">
+                <span className="flex flex-col items-end gap-0.5">
                   <p className="font-bold ">
                     ฿{o?.bill_price?.toLocaleString()}
                   </p>
                   <span
                     className={`flex flex-col p-1.5 px-2 rounded-md shadow-md lg:flex-row items-center gap-2 text-xs ${
                       o?.status_pm === "pending"
-                        ? "text-orange-400 bg-orange-100"
+                        ? "text-orange-500 bg-orange-100"
                         : o?.status_pm === "sending"
                         ? "text-purple-500 bg-purple-100"
                         : o?.status_pm === "recevied"
@@ -234,14 +237,32 @@ const Dashboard = () => {
                       </>
                     )}
                   </span>
+                  {o?.status_pm === "return_pending" && (
+                    <span className="flex items-center gap-2 text-xs text-orange-500 p-0.5 shadow-sm rounded-md bg-red-50">
+                      <FaExclamationCircle />
+                      <p className=" ">คำขอคืนเงิน</p>
+                    </span>
+                  )}
+                  {o?.status_pm === "return_sending" && (
+                    <span className="flex items-center gap-2 text-xs text-green-500 p-0.5 shadow-sm rounded-md bg-green-50">
+                      <FaClock />
+                      <p className=" ">รอลูกค้ายืนยันรับเงินคืน</p>
+                    </span>
+                  )}
+                  {o?.status_pm === "return_confirmed" && (
+                    <span className="flex items-center gap-2 text-xs text-blue-500 p-0.5 shadow-sm rounded-md bg-blue-50">
+                      <FaCheckCircle />
+                      <p className=" ">ลูกค้าได้รับเงินคืนแล้ว</p>
+                    </span>
+                  )}
                 </span>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* product */}
-        <div className="shadow-lg shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px] overflow-auto">
+        <div className="shadow-lg bg-white shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px] overflow-auto">
           <span className="w-full justify-between flex items-center gap-2 pb-3 border-b border-blue-300">
             <div className="flex items-center gap-2">
               <FaBox color="blue" />
@@ -291,14 +312,14 @@ const Dashboard = () => {
         </div>
 
         {/* user */}
-        <div className="shadow-lg shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px]">
+        <div className="shadow-lg bg-white shadow-gray-300 flex flex-col gap-4 rounded-md border border-gray-300 p-5 h-[500px]">
           <span className="w-full justify-between flex items-center gap-2 pb-3 border-b border-blue-300">
             <div className="flex items-center gap-2">
               <FaUserAlt color="purple" />
               <p>สมาชิกที่สั่งซื้อมากที่สุด</p>
             </div>
             <Link
-              href="/admin/memders"
+              href="/admin/members"
               className="p-2 text-blue-500 hover:underline"
             >
               จัดการ
@@ -349,7 +370,7 @@ const Dashboard = () => {
         </span>
         <p className="text-red-500">มีสินค้า 5 รายการเหลือน้อยกว่า 10 ชิ้น</p>
       </div> */}
-    </div>
+    </>
   );
 };
 export default Dashboard;

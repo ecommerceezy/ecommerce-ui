@@ -12,7 +12,6 @@ import { NO_IMG_PRODUCT } from "../admin/product/page";
 import { cartFunc } from "@/libs/cart";
 import useGetSeesion from "@/hooks/useGetSession";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "@/context/app-context";
 
 const Page = () => {
   const [loading, setLoading] = useState(false);
@@ -58,7 +57,18 @@ const Page = () => {
         (total, item) => total + item.count * item?.pro_price,
         0
       );
-      setTotalAmount(totalAmount);
+      const totalDiscount = data
+        .slice()
+        .reduce(
+          (total, item) =>
+            total +
+            item.count *
+              Math.round(
+                (Number(item?.promotion?.discount || 0) / 100) * item?.pro_price
+              ),
+          0
+        );
+      setTotalAmount(totalAmount - totalDiscount);
 
       setCartProduct(data);
     } catch (error) {
@@ -108,7 +118,7 @@ const Page = () => {
       <div className="w-full flex items-center bg-white border border-gray-200">
         <p className="p-5 w-1/2 text-gray-700 text-sm">สินค้า</p>
         <div className="flex items-center w-1/2 justify-between">
-          <p className="pl-10 flex-1 text-gray-700 text-sm">ราคาต่อชิ้น</p>
+          <p className="pl-10 flex-1 text-gray-700 text-sm">ราคาต่อหน่วย</p>
           <p className="pl-10 flex-1 text-gray-700 text-sm">จำนวน</p>
           <p className="pl-10 flex-1 ml-3 text-gray-700 text-sm">ราคารวม</p>
           <p className="pl-10 flex-1 text-gray-700 text-sm">แอคชัน</p>
@@ -153,10 +163,30 @@ const Page = () => {
             </Link>
             <div className="lg:w-1/2 w-full grid grid-cols-2 lg:flex items-center justify-around">
               <span className="flex items-center gap-2">
-                <p className="text-orange-600">
-                  {Number(c?.pro_price).toLocaleString()}฿
+                {c?.promotion?.discount ? (
+                  <>
+                    <p className="text-gray-700 text-sm line-through">
+                      {Number(c?.pro_price).toLocaleString()}฿
+                    </p>
+                    <p className="text-red-500">
+                      {(
+                        c?.pro_price -
+                        Math.round(
+                          (Number(c?.promotion?.discount) / 100) * c?.pro_price
+                        )
+                      ).toLocaleString()}
+                      ฿
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-black">
+                    {Number(c?.pro_price).toLocaleString()}฿
+                  </p>
+                )}
+
+                <p className="text-sm text-gray-500 lg:hidden">
+                  / {c?.unit || "ชิ้น"}
                 </p>
-                <p className="text-sm text-gray-500 lg:hidden">/ หน่วย</p>
               </span>
               <div className="flex items-center gap-2">
                 <p className="text-sm text-gray-500 lg:hidden">จำนวน:</p>
@@ -191,8 +221,20 @@ const Page = () => {
 
               <span className="flex items-center gap-2">
                 <p className="text-sm text-gray-500 lg:hidden">ราคารวม:</p>
-                <p className="text-orange-600 text-xl font-bold">
-                  {(Number(c?.count) * Number(c?.pro_price)).toLocaleString()}฿
+                <p className="text-black text-xl font-bold">
+                  {c?.promotion?.discount
+                    ? (
+                        (c?.pro_price -
+                          Math.round(
+                            (Number(c?.promotion?.discount) / 100) *
+                              c?.pro_price
+                          )) *
+                        c?.count
+                      ).toLocaleString()
+                    : (
+                        Number(c?.count) * Number(c?.pro_price)
+                      ).toLocaleString()}
+                  ฿
                 </p>
               </span>
               <button
@@ -214,7 +256,7 @@ const Page = () => {
         </p>
         <div className="flex items-center gap-2">
           <p>รวมราคาสินค้าทั้งหมด:</p>
-          <p className="text-xl font-bold text-orange-600">
+          <p className="text-xl font-bold text-black">
             ฿{totalAmount.toLocaleString()}
           </p>
           <button

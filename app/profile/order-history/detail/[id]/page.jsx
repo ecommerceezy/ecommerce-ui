@@ -10,6 +10,11 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
+  AiFillCheckCircle,
+  AiFillClockCircle,
+  AiOutlineSearch,
+} from "react-icons/ai";
+import {
   FaArrowLeft,
   FaBox,
   FaCalendar,
@@ -28,6 +33,8 @@ const OrderDetails = () => {
   const { id } = params;
   const [loading, setLoading] = useState(false);
   const [slip, setSlip] = useState("");
+  const [showSlipReturnModal, setShowSlipReturnModal] = useState(false);
+  const [slipReturn, setSlipReturn] = useState("");
 
   const [order, setOrder] = useState(null);
   const fetchOrder = async (id) => {
@@ -40,6 +47,7 @@ const OrderDetails = () => {
       if (res.status === 200) {
         setOrder(res.data);
         setSlip(envConfig.imgURL + res?.data?.slip_pm);
+        setSlipReturn(envConfig.imgURL + res?.data?.slip_return);
       }
     } catch (error) {
       console.error(error);
@@ -96,10 +104,20 @@ const OrderDetails = () => {
 
   const handleUpdateOrderStatus = async (status, orderId) => {
     const { isConfirmed } = await popup.confirmPopUp(
-      status === "cancel" ? "ยกเลิกคำสั่งซื้อนี้" : "ฉันได้รับสินค้าแล้ว",
+      status === "cancel"
+        ? "ยกเลิกคำสั่งซื้อนี้"
+        : status === "recevied"
+        ? "ฉันได้รับสินค้าแล้ว"
+        : status === "return_pending"
+        ? "ยืนยันส่งคำขอคืนเงิน"
+        : "ได้รับเงินคืนแล้ว",
       status === "cancel"
         ? "ต้องการยกเลิกคำสั่งซื้อนี้หรือไม่"
-        : "กดยืนยันหากคุณได้รับสินค้าแล้ว",
+        : status === "recevied"
+        ? "กดยืนยันหากคุณได้รับสินค้าแล้ว"
+        : status === "return_pending"
+        ? "คุณต้องการส่งคำขอคืนเงินใช่หรือไม่"
+        : "ฉันได้ตรวจสอบและได้รับเงินคืนแล้ว",
       status === "cancel" ? "ยกเลิกคำสั่งซื้อ" : "ยืนยัน"
     );
     if (!isConfirmed) return;
@@ -115,6 +133,10 @@ const OrderDetails = () => {
         popup.success(
           status === "cancel"
             ? "ยกเลิกออเดอร์แล้ว"
+            : status === "recevied"
+            ? "ขอบคุณที่ไว้ใจใช้บริการของเรา"
+            : status === "return_pending"
+            ? "ระบบได้รับคำขอคืนเงินของคุณแล้ว จะทำการตรวจสอบและติดต่อกลับผ่านอีเมลโดยเร็วที่สุด"
             : "ขอบคุณที่ไว้ใจใช้บริการของเรา"
         );
         fetchOrder(orderId);
@@ -146,40 +168,60 @@ const OrderDetails = () => {
               <p className="text-lg font-bold">รายละเอียดคำสั่งซื้อ</p>
               <p className="text-blue-500 font-bold">{order?.bill_id}</p>
             </div>
-            <span
-              className={`flex flex-col p-1.5 px-2 rounded-md shadow-md lg:flex-row items-center gap-2 text-sm ${
-                order?.status_pm === "pending"
-                  ? "text-orange-400 bg-orange-100"
-                  : order?.status_pm === "sending"
-                  ? "text-purple-500 bg-purple-100"
-                  : order?.status_pm === "recevied"
-                  ? "text-green-500 bg-green-100"
-                  : "text-red-500 bg-red-100"
-              }`}
-            >
-              {order?.status_pm === "pending" ? (
-                <>
-                  <FaClock />
-                  <p>รอยืนยัน</p>
-                </>
-              ) : order?.status_pm === "sending" ? (
-                <>
-                  <FaTruck />
-                  <p>กำลังจัดส่ง</p>
-                </>
-              ) : order?.status_pm === "recevied" ? (
-                <>
-                  {" "}
-                  <FaCheck />
-                  <p>ได้รับแล้ว</p>
-                </>
-              ) : (
-                <>
-                  <FaTimes />
-                  <p>ยกเลิก</p>
-                </>
+            <div className="flex flex-col gap-1 items-end">
+              <span
+                className={`flex w-fit flex-col p-1.5 px-2 rounded-md shadow-md lg:flex-row items-center gap-2 text-sm ${
+                  order?.status_pm === "pending"
+                    ? "text-orange-500 bg-orange-100"
+                    : order?.status_pm === "sending"
+                    ? "text-purple-500 bg-purple-100"
+                    : order?.status_pm === "recevied"
+                    ? "text-green-500 bg-green-100"
+                    : "text-red-500 bg-red-100"
+                }`}
+              >
+                {order?.status_pm === "pending" ? (
+                  <>
+                    <FaClock />
+                    <p>รอยืนยัน</p>
+                  </>
+                ) : order?.status_pm === "sending" ? (
+                  <>
+                    <FaTruck />
+                    <p>กำลังจัดส่ง</p>
+                  </>
+                ) : order?.status_pm === "recevied" ? (
+                  <>
+                    {" "}
+                    <FaCheck />
+                    <p>ได้รับแล้ว</p>
+                  </>
+                ) : (
+                  <>
+                    <FaTimes />
+                    <p>ยกเลิก</p>
+                  </>
+                )}
+              </span>
+              {order?.status_pm === "return_pending" && (
+                <span className="flex items-center gap-2 text-xs text-orange-500 p-0.5 rounded-md bg-red-50">
+                  <AiOutlineSearch />
+                  <p className=" ">อยู่ระหว่างตรวจสอบคำขอคืนเงิน</p>
+                </span>
               )}
-            </span>
+              {order?.status_pm === "return_sending" && (
+                <span className="flex items-center gap-2 text-xs text-green-500 p-0.5 rounded-md bg-green-50">
+                  <AiFillClockCircle />
+                  <p className=" ">หลักฐานการคืนเงินถูกอัปโหลดแล้ว</p>
+                </span>
+              )}
+              {order?.status_pm === "return_confirmed" && (
+                <span className="flex items-center gap-2 text-xs text-blue-500 p-0.5 rounded-md bg-blue-50">
+                  <AiFillCheckCircle />
+                  <p className=" ">ได้รับเงินคืนแล้ว</p>
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex lg:flex-row flex-col gap-3 lg:items-center w-full mt-5 justify-between">
             <div className="flex items-center gap-2.5">
@@ -216,7 +258,7 @@ const OrderDetails = () => {
             {order?.order_details?.map((d) => (
               <div
                 key={d?.detail_id}
-                className="w-full flex flex-col lg:flex-row lg:items-center py-2 border-b border-gray-300"
+                className="w-full flex flex-col lg:flex-row lg:items-start py-2 border-b border-gray-300"
               >
                 <div className="lg:w-1/2 w-full flex items-center gap-2">
                   <div className="w-[65px] h-[65px] border border-gray-200 rounded-md overflow-hidden">
@@ -239,16 +281,40 @@ const OrderDetails = () => {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center  lg:mt-0  w-full lg:w-1/2 justify-end gap-16 px-5">
+                <div className="flex items-start  lg:mt-0  w-full lg:w-1/2 justify-end gap-16 px-5">
                   <span className="flex flex-col items-center">
                     <p className="text-sm text-gray-600">จำนวน</p>
                     <p> {Number(d?.quantity || 0).toLocaleString()}</p>
                   </span>
                   <span className="flex flex-col items-center">
                     <p className="text-sm text-gray-600">ราคารวม</p>
-                    <p className="text-orange-600">
-                      ฿ {Number(d?.total_amount || 0).toLocaleString()}
+                    <p
+                      className={`text-black ${
+                        d?.product?.promotion?.discount &&
+                        "text-sm line-through"
+                      }`}
+                    >
+                      ฿{Number(d?.total_amount || 0)?.toLocaleString()}
                     </p>
+                    {d?.product?.promotion?.discount && (
+                      <p className="text-red-500">
+                        ฿{" "}
+                        {d?.product?.promotion?.discount
+                          ? (
+                              (d?.product?.pro_price -
+                                Math.round(
+                                  (Number(d?.product?.promotion?.discount) /
+                                    100) *
+                                    d?.product?.pro_price
+                                )) *
+                              d?.quantity
+                            ).toLocaleString()
+                          : (
+                              Number(d?.quantity) *
+                              Number(d?.product?.pro_price)
+                            ).toLocaleString()}
+                      </p>
+                    )}
                   </span>
                 </div>
               </div>
@@ -263,8 +329,23 @@ const OrderDetails = () => {
 
           <span className="w-full flex justify-between ">
             <p className="text-gray-600 text-sm">รวมราคาสินค้า</p>
-            <p className="text-lg text-orange-500">
+            <p className="text-lg text-black">
               ฿{Number(order?.bill_totalamount || 0).toLocaleString()}
+            </p>
+          </span>
+          <span className="w-full flex justify-between ">
+            <p className="text-gray-600 text-sm">รวมราคาส่วนลด</p>
+            <p className="text-lg ">
+              ฿{Number(order?.bill_totalDiscount || 0).toLocaleString()}
+            </p>
+          </span>
+          <span className="w-full flex justify-between ">
+            <p className="text-gray-600 text-sm">รวมราคาสินค้าหลักหักส่วนลด</p>
+            <p className="text-lg ">
+              ฿
+              {Number(
+                order?.bill_totalamount - order?.bill_totalDiscount || 0
+              ).toLocaleString()}
             </p>
           </span>
           <span className="w-full flex justify-between ">
@@ -276,7 +357,7 @@ const OrderDetails = () => {
 
           <span className="pt-3.5 border-t border-blue-300 w-full flex items-center justify-between">
             <p className="text-lg font-bold"> รวมทั้งหมด</p>
-            <p className="text-lg font-bold text-green-500">
+            <p className="text-lg font-bold ">
               ฿{Number(order?.bill_price || 0).toLocaleString()}
             </p>
           </span>
@@ -284,16 +365,32 @@ const OrderDetails = () => {
 
         <div className="mt-5 w-full flex lg:items-center justify-between lg:flex-row flex-col gap-3">
           {slip && order?.pm_method === "QR Promptpay" && (
-            <button
-              onClick={() => {
-                setShowModal(true);
-                setSlip(envConfig.imgURL + order.slip_pm);
-              }}
-              className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-blue-500 hover:text-white text-sm"
-            >
-              <FaEye />
-              <p>ดูสลิป</p>
-            </button>
+            <div className="flex items-center gap-2">
+              {" "}
+              <button
+                onClick={() => {
+                  setShowModal(true);
+                  setSlip(envConfig.imgURL + order.slip_pm);
+                }}
+                className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-blue-500 hover:text-white text-sm"
+              >
+                <FaEye />
+                <p>ดูสลิป</p>
+              </button>
+              {order?.status_pm === "return_sending" ||
+                (order?.status_pm === "return_confirmed" && (
+                  <button
+                    onClick={() => {
+                      setShowSlipReturnModal(true);
+                    }}
+                    className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-orange-500 hover:text-white text-sm"
+                  >
+                    <FaEye />
+                    <p>ดูหลักฐานการคืนเงิน</p>
+                  </button>
+                ))}
+              <button></button>
+            </div>
           )}
           <div className="flex items-center flex-col lg:flex-row gap-2">
             <p className="text-gray-500">ดำเนินการ:</p>
@@ -320,8 +417,22 @@ const OrderDetails = () => {
                 </>
               ) : (
                 <>
-                  {order?.status !== "cancel" && (
+                  {order?.status_pm === "recevied" && (
                     <DownloadInvoiceButton bill={order} />
+                  )}
+                  {order?.status_pm === "return_sending" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUpdateOrderStatus(
+                          "return_confirmed",
+                          order?.bill_id
+                        );
+                      }}
+                      className="p-3 hover:bg-green-600 px-5 bg-green-500 text-white border border-gray-200"
+                    >
+                      ยืนยันได้รับเงินคืนแล้ว
+                    </button>
                   )}
 
                   <Link
@@ -330,6 +441,21 @@ const OrderDetails = () => {
                   >
                     ซื้ออีกครั้ง
                   </Link>
+                  {order?.status_pm === "cancel" &&
+                    order?.pm_method === "QR Promptpay" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUpdateOrderStatus(
+                            "return_pending",
+                            order?.bill_id
+                          );
+                        }}
+                        className="p-3 hover:bg-orange-600 px-5 bg-orange-500 text-white border border-gray-200"
+                      >
+                        ส่งคำขอคืนเงิน
+                      </button>
+                    )}
                 </>
               )}
             </div>
@@ -380,6 +506,23 @@ const OrderDetails = () => {
               </button>
             </>
           )}
+        </div>
+      </Modal>
+      <Modal
+        isOpen={showSlipReturnModal}
+        onClose={() => setShowSlipReturnModal(false)}
+      >
+        <div className="relative lg:w-1/3 w-full h-[90%] overflow-auto p-5 border border-gray-300 flex flex-col items-center rounded-md shadow-gray-400 z-50 bg-white">
+          <button
+            onClick={() => setShowSlipReturnModal(false)}
+            className="p-1.5 px-2 rounded-md absolute top-3 right-3 hover:bg-gray-200"
+          >
+            <FaTimes size={20} />
+          </button>
+          <p>หลักฐานการคืนเงิน</p>
+          <div className="w-full lg:w-2/3 mt-3 p-1 rounded-md border border-gray-300">
+            <img src={slipReturn} className="w-full h-auto" alt="" />
+          </div>
         </div>
       </Modal>
     </>

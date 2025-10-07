@@ -25,7 +25,9 @@ const Layout = ({ children }) => {
   return (
     <div className="w-full h-screen flex items-center gap-2">
       <AdminSidebar />
-      {children}
+      <div className="w-full h-full overflow-auto flex flex-col p-5 bg-gray-50">
+        {children}
+      </div>
     </div>
   );
 };

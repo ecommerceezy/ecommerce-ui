@@ -101,17 +101,16 @@ const Navbar = () => {
   useEffect(() => {
     if (checking) return;
 
-    console.log("🚀 ~ Navbar ~ user?.roleId:", user?.roleId)
-    if (user?.roleId > 1 && pathName.split("/")[1] !== "admin" ) {
+    if (user?.roleId > 1 && pathName.split("/")[1] !== "admin") {
       router.push("/admin/dashboard");
     }
   }, [user]);
 
   useEffect(() => {
-    if(pathName !== "/search"){
+    if (pathName !== "/search") {
       setSearchCtgs([]);
     }
-  },[pathName]);
+  }, [pathName]);
 
   if (loading) return <Loading />;
   if (pathNotShowNav.includes(pathName) || pathName.split("/")[1] === "admin")

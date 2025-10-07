@@ -2,7 +2,6 @@ import { popup } from "./alert-popup";
 
 export const cartFunc = {
   addProduct: (product, alert = true, pro_number, option, count = 1) => {
-    console.log("🚀 ~ product:", product);
     const cartStore = JSON.parse(localStorage.getItem("cart"));
     let data = cartStore || [];
     if (

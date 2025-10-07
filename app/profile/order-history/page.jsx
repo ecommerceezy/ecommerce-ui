@@ -3,19 +3,15 @@
 import Loader from "@/components/loader";
 import OrderCard from "@/components/order-card";
 import { envConfig } from "@/config/env-config";
-import useGetSeesion from "@/hooks/useGetSession";
 import { popup } from "@/libs/alert-popup";
 import axios from "axios";
 import { debounce } from "lodash";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FaFolderOpen, FaList, FaSearch } from "react-icons/fa";
 import { v4 as uuid } from "uuid";
 
 const Page = () => {
-  const router = useRouter();
   const [orderStatus, setOrderStatus] = useState("all");
-  const { user } = useGetSeesion();
   const [sort, setSort] = useState(JSON.stringify({ createdAt: "desc" }));
   const [search, setSearch] = useState("");
 
@@ -84,10 +80,20 @@ const Page = () => {
 
   const handleUpdateOrderStatus = async (status, orderId) => {
     const { isConfirmed } = await popup.confirmPopUp(
-      status === "cancel" ? "ยกเลิกคำสั่งซื้อนี้" : "ฉันได้รับสินค้าแล้ว",
+      status === "cancel"
+        ? "ยกเลิกคำสั่งซื้อนี้"
+        : status === "recevied"
+        ? "ฉันได้รับสินค้าแล้ว"
+        : status === "return_pending"
+        ? "ยืนยันส่งคำขอคืนเงิน"
+        : "ได้รับเงินคืนแล้ว",
       status === "cancel"
         ? "ต้องการยกเลิกคำสั่งซื้อนี้หรือไม่"
-        : "กดยืนยันหากคุณได้รับสินค้าแล้ว",
+        : status === "recevied"
+        ? "กดยืนยันหากคุณได้รับสินค้าแล้ว"
+        : status === "return_pending"
+        ? "คุณต้องการส่งคำขอคืนเงินใช่หรือไม่"
+        : "ฉันได้ตรวจสอบและได้รับเงินคืนแล้ว",
       status === "cancel" ? "ยกเลิกคำสั่งซื้อ" : "ยืนยัน"
     );
     if (!isConfirmed) return;
@@ -103,6 +109,10 @@ const Page = () => {
         popup.success(
           status === "cancel"
             ? "ยกเลิกออเดอร์แล้ว"
+            : status === "recevied"
+            ? "ขอบคุณที่ไว้ใจใช้บริการของเรา"
+            : status === "return_pending"
+            ? "ระบบได้รับคำขอคืนเงินของคุณแล้ว จะทำการตรวจสอบและติดต่อกลับผ่านอีเมลโดยเร็วที่สุด"
             : "ขอบคุณที่ไว้ใจใช้บริการของเรา"
         );
         fetchOrderHistory(orderStatus, sort, search);
