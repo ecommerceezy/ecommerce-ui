@@ -46,6 +46,7 @@ const OrderDetails = () => {
       );
       if (res.status === 200) {
         setOrder(res.data);
+        console.log("🚀 ~ fetchOrder ~ res.data:", res.data);
         setSlip(envConfig.imgURL + res?.data?.slip_pm);
         setSlipReturn(envConfig.imgURL + res?.data?.slip_return);
       }
@@ -364,7 +365,7 @@ const OrderDetails = () => {
         </div>
 
         <div className="mt-5 w-full flex lg:items-center justify-between lg:flex-row flex-col gap-3">
-          {slip && order?.pm_method === "QR Promptpay" && (
+          {order?.pm_method === "QR Promptpay" && (
             <div className="flex items-center gap-2">
               {" "}
               <button
@@ -377,31 +378,57 @@ const OrderDetails = () => {
                 <FaEye />
                 <p>ดูสลิป</p>
               </button>
-              {order?.status_pm === "return_sending" ||
-                (order?.status_pm === "return_confirmed" && (
-                  <button
-                    onClick={() => {
-                      setShowSlipReturnModal(true);
-                    }}
-                    className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-orange-500 hover:text-white text-sm"
-                  >
-                    <FaEye />
-                    <p>ดูหลักฐานการคืนเงิน</p>
-                  </button>
-                ))}
-              <button></button>
+              {order?.status_pm === "return_sending" && (
+                <button
+                  onClick={() => {
+                    setShowSlipReturnModal(true);
+                  }}
+                  className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-orange-500 hover:text-white text-sm"
+                >
+                  <FaEye />
+                  <p>ดูหลักฐานการคืนเงิน</p>
+                </button>
+              )}
+              {order?.status_pm === "return_confirmed" && (
+                <button
+                  onClick={() => {
+                    setShowSlipReturnModal(true);
+                  }}
+                  className="p-2 px-3 flex items-center justify-center gap-2 border border-gray-300 hover:bg-orange-500 hover:text-white text-sm"
+                >
+                  <FaEye />
+                  <p>ดูหลักฐานการคืนเงิน</p>
+                </button>
+              )}
             </div>
           )}
           <div className="flex items-center flex-col lg:flex-row gap-2">
             <p className="text-gray-500">ดำเนินการ:</p>
             <div className="flex items-center gap-2.5 text-sm lg:text-[1rem]">
               {order?.status_pm === "pending" ? (
-                <button
-                  onClick={() => handleUpdateOrderStatus("cancel", id)}
-                  className="p-3 hover:bg-red-600 px-5 bg-red-500 text-white border border-gray-200"
-                >
-                  ยกเลิกคำสั่งซื้อ
-                </button>
+                <>
+                  <button
+                    onClick={() => handleUpdateOrderStatus("cancel", id)}
+                    className="p-3 hover:bg-red-600 px-5 bg-red-500 text-white border border-gray-200"
+                  >
+                    ยกเลิกคำสั่งซื้อ
+                  </button>
+                  {order?.status_pm === "pending" &&
+                    order?.pm_method === "QR Promptpay" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleUpdateOrderStatus(
+                            "return_pending",
+                            order?.bill_id
+                          );
+                        }}
+                        className="p-3 hover:bg-orange-600 px-5 bg-orange-500 text-white border border-gray-200"
+                      >
+                        ส่งคำขอคืนเงิน
+                      </button>
+                    )}
+                </>
               ) : order?.status_pm === "sending" ? (
                 <>
                   {" "}
@@ -441,21 +468,6 @@ const OrderDetails = () => {
                   >
                     ซื้ออีกครั้ง
                   </Link>
-                  {order?.status_pm === "cancel" &&
-                    order?.pm_method === "QR Promptpay" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleUpdateOrderStatus(
-                            "return_pending",
-                            order?.bill_id
-                          );
-                        }}
-                        className="p-3 hover:bg-orange-600 px-5 bg-orange-500 text-white border border-gray-200"
-                      >
-                        ส่งคำขอคืนเงิน
-                      </button>
-                    )}
                 </>
               )}
             </div>

@@ -65,7 +65,7 @@ const ProductCard = ({
           เหลือ {pro_number?.toLocaleString()} {unit || "ชิ้น"}
         </p>
         <p className="text-xs text-gray-700">
-          ขายแล้ว {sell_count?.toLocaleString()} ชิ้น
+          ขายแล้ว {sell_count?.toLocaleString()} {unit || "ชิ้น"}
         </p>
         <span className="w-full flex items-end gap-1.5">
           <p
